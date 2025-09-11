@@ -15,7 +15,7 @@ internal class RpcIrServiceProcessor(
     private val logger: MessageCollector,
 ) {
     fun visitClass(declaration: IrClass, data: RpcIrContext) {
-        if (declaration.hasAnnotation(RpcClassId.rpcAnnotation) && declaration.isInterface) {
+        if (declaration.hasAnnotation(RpcClassId.rpcAnnotation)) {
             processService(declaration, data)
         }
     }

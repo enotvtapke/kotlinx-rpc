@@ -13,10 +13,10 @@ import kotlinx.rpc.codegen.test.TestRpcClient
 data class TestData(val value: String)
 
 @Rpc
-interface BoxService {
-    suspend fun test1(testData: TestData): String
+class BoxService {
+    suspend fun test1(testData: TestData): String = ""
 
-    suspend fun test2(testData: TestData): String
+    suspend fun test2(testData: TestData): String = ""
 }
 
 fun box(): String = runBlocking {

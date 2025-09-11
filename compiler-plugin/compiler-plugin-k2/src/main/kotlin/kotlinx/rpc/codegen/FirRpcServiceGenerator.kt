@@ -51,7 +51,7 @@ class FirRpcServiceGenerator(
                 setOf(SpecialNames.DEFAULT_NAME_FOR_COMPANION_OBJECT)
             }
 
-            classSymbol.isInterface && session.predicateBasedProvider.matches(FirRpcPredicates.rpc, classSymbol) -> {
+            session.predicateBasedProvider.matches(FirRpcPredicates.rpc, classSymbol) -> {
                 setOf(RpcNames.SERVICE_STUB_NAME)
             }
 

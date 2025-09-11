@@ -12,10 +12,18 @@ FILE: customParameterTypes.kt
         public final fun copy(value: R|kotlin/String| = this@R|/TestData|.R|/TestData.value|): R|TestData|
 
     }
-    @R|kotlinx/rpc/annotations/Rpc|() public abstract interface BoxService : R|kotlin/Any| {
-        public abstract suspend fun test1(testData: R|TestData|): R|kotlin/String|
+    @R|kotlinx/rpc/annotations/Rpc|() public final class BoxService : R|kotlin/Any| {
+        public constructor(): R|BoxService| {
+            super<R|kotlin/Any|>()
+        }
 
-        public abstract suspend fun test2(testData: R|TestData|): R|kotlin/String|
+        public final suspend fun test1(testData: R|TestData|): R|kotlin/String| {
+            ^test1 String()
+        }
+
+        public final suspend fun test2(testData: R|TestData|): R|kotlin/String| {
+            ^test2 String()
+        }
 
         public final class $rpcServiceStub : R|kotlin/Any| {
             public final companion object Companion : R|kotlin/Any| {

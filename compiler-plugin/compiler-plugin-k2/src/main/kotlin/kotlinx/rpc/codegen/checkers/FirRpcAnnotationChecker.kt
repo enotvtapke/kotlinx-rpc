@@ -28,22 +28,22 @@ object FirRpcAnnotationChecker {
 
         val isMetaAnnotated = declaration.classKind != ClassKind.ANNOTATION_CLASS
 
-        if (!declaration.isInterface && isMetaAnnotated && rpcMetaAnnotated) {
-            reporter.reportOn(
-                source = declaration.symbol.rpcAnnotationSource(
-                    session = context.session,
-                    predicate = FirRpcPredicates.rpcMeta,
-                    classId = RpcClassId.rpcAnnotation,
-                ),
-                factory = FirRpcDiagnostics.WRONG_RPC_ANNOTATION_TARGET,
-                context = context,
-                a = declaration.symbol.rpcAnnotation(
-                    session = context.session,
-                    predicate = FirRpcPredicates.rpc,
-                    classId = RpcClassId.rpcAnnotation,
-                )?.resolvedType
-                    ?: error("Unexpected unresolved annotation type for declaration: ${declaration.symbol.classId.asSingleFqName()}"),
-            )
-        }
+//        if (!declaration.isInterface && isMetaAnnotated && rpcMetaAnnotated) {
+//            reporter.reportOn(
+//                source = declaration.symbol.rpcAnnotationSource(
+//                    session = context.session,
+//                    predicate = FirRpcPredicates.rpcMeta,
+//                    classId = RpcClassId.rpcAnnotation,
+//                ),
+//                factory = FirRpcDiagnostics.WRONG_RPC_ANNOTATION_TARGET,
+//                context = context,
+//                a = declaration.symbol.rpcAnnotation(
+//                    session = context.session,
+//                    predicate = FirRpcPredicates.rpc,
+//                    classId = RpcClassId.rpcAnnotation,
+//                )?.resolvedType
+//                    ?: error("Unexpected unresolved annotation type for declaration: ${declaration.symbol.classId.asSingleFqName()}"),
+//            )
+//        }
     }
 }
