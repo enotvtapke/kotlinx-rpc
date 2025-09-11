@@ -1144,7 +1144,14 @@ internal class RpcStubGenerator(
     // default constructor implementation
     private fun IrClass.addDefaultConstructor(constructor: IrConstructor) {
         constructor.body = irBuilder(constructor.symbol).irBlockBody {
-            +irDelegatingConstructorCall(context.irBuiltIns.anyClass.owner.constructors.single())
+            if (declaration.service.isInterface || this@addDefaultConstructor.isObject) {
+                +irDelegatingConstructorCall(context.irBuiltIns.anyClass.owner.constructors.single())
+            } else {
+                +irDelegatingConstructorCall(
+                    declaration.service.constructors.firstOrNull()
+                        ?: error("Rpc class ${declaration.service.name} has no constructor")
+                )
+            }
             +IrInstanceInitializerCallImpl(
                 startOffset = startOffset,
                 endOffset = endOffset,
