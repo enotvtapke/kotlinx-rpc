@@ -21,7 +21,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlin.reflect.typeOf
 
 internal class KrpcServerService<@Rpc T : Any>(
-    private val service: T,
+    private var service: T? = null,
     private val descriptor: RpcServiceDescriptor<T>,
     private val config: KrpcConfig.Server,
     private val connector: KrpcServerConnector,
@@ -152,7 +152,16 @@ internal class KrpcServerService<@Rpc T : Any>(
 
                 val value = when (val invokator = callable.invokator) {
                     is RpcInvokator.Method -> {
-                        invokator.call(service, data)
+                        invokator.call(
+                            service ?: error(
+                                "Server tried to invoke method '$callableName' of the uninitialized service. " +
+                                        "Constructor of the service should be invocated first."
+                            ), data
+                        )
+                    }
+
+                    is RpcInvokator.Constructor -> {
+                        service = invokator.call(data)
                     }
                 }.let { interceptedValue ->
                     // KRPC-173

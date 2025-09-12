@@ -540,6 +540,7 @@ public abstract class KrpcClient : RpcClient, KrpcEndpoint {
     private fun RpcCallable<*>.toMessageCallType(): KrpcCallMessage.CallType {
         return when (invokator) {
             is RpcInvokator.Method -> KrpcCallMessage.CallType.Method
+            is RpcInvokator.Constructor -> KrpcCallMessage.CallType.Method
         }
     }
 }

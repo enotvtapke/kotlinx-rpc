@@ -64,4 +64,12 @@ public class KrpcRoute(
     ) {
         registerService(Service::class, serviceFactory)
     }
+
+    public fun <@Rpc Service : Any> registerServiceForCreation(
+        serviceKClass: KClass<Service>,
+    ) {
+        registrations.add { server ->
+            server.registerServiceForCreation(serviceKClass)
+        }
+    }
 }

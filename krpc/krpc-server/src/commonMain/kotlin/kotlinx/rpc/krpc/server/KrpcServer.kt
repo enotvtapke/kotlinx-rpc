@@ -133,6 +133,22 @@ public abstract class KrpcServer(
         }
     }
 
+    final override fun <@Rpc Service : Any> registerServiceForCreation(
+        serviceKClass: KClass<Service>,
+    ) {
+        val descriptor = serviceDescriptorOf(serviceKClass)
+
+        internalScope.launch(CoroutineName("krpc-server-service-$descriptor")) {
+            connector.subscribeToServiceMessages(descriptor.fqName) { message ->
+                val rpcServerService = rpcServices.computeIfAbsent("${descriptor.fqName}$${message.serviceId}") { // TODO this map key is not unique when there is more than 1 client node. Server node should generated service ID instead and return this ID to client
+                    createNewUninitializedServiceInstance(descriptor)
+                }
+
+                rpcServerService.accept(message)
+            }
+        }
+    }
+
     override fun <@Rpc Service : Any> deregisterService(serviceKClass: KClass<Service>) {
         connector.unsubscribeFromServiceMessages(serviceDescriptorOf(serviceKClass).fqName)
         rpcServices.remove(serviceDescriptorOf(serviceKClass).fqName)
@@ -144,6 +160,18 @@ public abstract class KrpcServer(
     ): KrpcServerService<Service> {
         return KrpcServerService(
             service = serviceFactory(),
+            descriptor = descriptor,
+            config = config,
+            connector = connector,
+            supportedPlugins = supportedPlugins,
+            serverScope = internalScope,
+        )
+    }
+
+    private fun <@Rpc Service : Any> createNewUninitializedServiceInstance(
+        descriptor: RpcServiceDescriptor<Service>,
+    ): KrpcServerService<Service> {
+        return KrpcServerService(
             descriptor = descriptor,
             config = config,
             connector = connector,

@@ -62,6 +62,11 @@ public sealed interface RpcInvokator<@Rpc T : Any> {
     public fun interface Method<@Rpc T : Any> : RpcInvokator<T> {
         public suspend fun call(service: T, parameters: Array<Any?>): Any?
     }
+
+    @ExperimentalRpcApi
+    public fun interface Constructor<@Rpc T : Any> : RpcInvokator<T> {
+        public suspend fun call(parameters: Array<Any?>): T
+    }
 }
 
 @ExperimentalRpcApi

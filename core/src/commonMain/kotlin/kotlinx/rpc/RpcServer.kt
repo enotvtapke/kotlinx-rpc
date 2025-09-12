@@ -42,6 +42,10 @@ public interface RpcServer {
     public fun <@Rpc Service : Any> deregisterService(
         serviceKClass: KClass<Service>,
     )
+
+    public fun <Service : Any> registerServiceForCreation(
+        serviceKClass: KClass<Service>
+    )
 }
 
 /**
