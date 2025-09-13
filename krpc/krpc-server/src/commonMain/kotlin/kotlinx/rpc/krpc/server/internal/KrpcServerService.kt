@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.rpc.annotations.Rpc
 import kotlinx.rpc.descriptor.RpcInvokator
 import kotlinx.rpc.descriptor.RpcServiceDescriptor
+import kotlinx.rpc.descriptor.RpcTypeDefault
 import kotlinx.rpc.internal.utils.map.RpcInternalConcurrentHashMap
 import kotlinx.rpc.krpc.KrpcConfig
 import kotlinx.rpc.krpc.internal.*
@@ -172,7 +173,10 @@ internal class KrpcServerService<@Rpc T : Any>(
                     }
                 }
 
-                val returnType = callable.returnType
+                val returnType = when(callable.invokator){
+                    is RpcInvokator.Constructor -> RpcTypeDefault(typeOf<Unit>(), listOf())
+                    is RpcInvokator.Method -> callable.returnType
+                }
                 val returnSerializer = serialFormat.serializersModule
                     .buildContextual(returnType)
 

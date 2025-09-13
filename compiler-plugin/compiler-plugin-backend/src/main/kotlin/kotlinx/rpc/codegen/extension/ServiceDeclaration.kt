@@ -5,7 +5,7 @@
 package kotlinx.rpc.codegen.extension
 
 import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.declarations.IrProperty
+import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.types.IrType
@@ -16,6 +16,7 @@ class ServiceDeclaration(
     val service: IrClass,
     val stubClass: IrClass,
     val methods: List<Method>,
+    val constructors: List<Constructor>,
 ) {
     val fqName = service.kotlinFqName.asString()
 
@@ -23,18 +24,26 @@ class ServiceDeclaration(
 
     sealed interface Callable {
         val name: String
+        val function: IrFunction
+        val arguments: List<Argument>
     }
 
     class Method(
-        val function: IrSimpleFunction,
-        val arguments: List<Argument>,
+        override val function: IrSimpleFunction,
+        override val arguments: List<Argument>,
     ) : Callable {
         override val name: String = function.name.asString()
-
-        class Argument(
-            val value: IrValueParameter,
-            val type: IrType,
-            val isOptional: Boolean,
-        )
     }
+
+    class Constructor(
+        override val name: String,
+        override val function: IrFunction,
+        override val arguments: List<Argument>,
+    ) : Callable
+
+    class Argument(
+        val value: IrValueParameter,
+        val type: IrType,
+        val isOptional: Boolean,
+    )
 }

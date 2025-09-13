@@ -520,6 +520,9 @@ internal class RpcStubGenerator(
         declaration.methods.forEach { callable ->
             generateInvokator(callable)
         }
+        declaration.constructors.forEach { callable ->
+            generateInvokator(callable)
+        }
     }
 
     /**
@@ -549,7 +552,9 @@ internal class RpcStubGenerator(
             name = Name.identifier("${callable.name}Invokator")
             visibility = DescriptorVisibilities.PRIVATE
         }.apply {
-            val propertyType = ctx.rpcInvokatorMethod.typeWith(declaration.serviceType)
+            val propertyType = if (callable is ServiceDeclaration.Constructor)
+                ctx.rpcInvokatorConstructor.typeWith(declaration.serviceType)
+            else ctx.rpcInvokatorMethod.typeWith(declaration.serviceType)
 
             addBackingFieldUtil {
                 visibility = DescriptorVisibilities.PRIVATE
@@ -562,28 +567,26 @@ internal class RpcStubGenerator(
                     visibility = DescriptorVisibilities.LOCAL
                     modality = Modality.FINAL
                     returnType = ctx.anyNullable
-                    if (callable is ServiceDeclaration.Method) {
-                        isSuspend = true
-                    }
+                    isSuspend = true
                 }.apply {
                     parent = this@backingField
 
-                    val serviceParameter = addValueParameter {
-                        name = Name.identifier("service")
-                        type = declaration.serviceType
-                    }
-
-                    val parametersParameter = when (callable) {
-                        is ServiceDeclaration.Method -> addValueParameter {
-                            name = Name.identifier("parameters")
-                            type = ctx.arrayOfAnyNullable
+                    val serviceParameter = if (callable is ServiceDeclaration.Method)
+                        addValueParameter {
+                            name = Name.identifier("service")
+                            type = declaration.serviceType
                         }
+                    else null
+
+                    val parametersParameter = addValueParameter {
+                        name = Name.identifier("parameters")
+                        type = ctx.arrayOfAnyNullable
                     }
 
                     body = irBuilder(symbol).irBlockBody {
                         val call = irCall(callable.function).apply {
                             arguments {
-                                dispatchReceiver = irGet(serviceParameter)
+                                if (serviceParameter != null) dispatchReceiver = irGet(serviceParameter)
 
                                 values {
                                     callable.arguments.forEachIndexed { argIndex, arg ->
@@ -616,13 +619,11 @@ internal class RpcStubGenerator(
                     }
                 }
 
-                val lambdaType = when (callable) {
-                    is ServiceDeclaration.Method -> ctx.suspendFunction2.typeWith(
+                val lambdaType = ctx.suspendFunction2.typeWith(
                         declaration.serviceType, // service
                         ctx.anyNullable, // data
                         ctx.anyNullable, // returnType
                     )
-                }
 
                 val lambda = IrFunctionExpressionImpl(
                     startOffset = UNDEFINED_OFFSET,
@@ -690,7 +691,7 @@ internal class RpcStubGenerator(
                     irMapOf(
                         keyType = ctx.irBuiltIns.stringType,
                         valueType = rpcCallableType,
-                        elements = declaration.methods.map { callable ->
+                        elements = (declaration.constructors + declaration.methods).map { callable ->
                             stringConst(callable.name) to irRpcCallable(callable)
                         },
                         isEmpty = isEmpty,
@@ -748,10 +749,8 @@ internal class RpcStubGenerator(
         }.apply {
             putConstructorTypeArgument(0, declaration.serviceType)
 
-            callable as ServiceDeclaration.Method
-
             val returnType = when {
-                callable.function.isNonSuspendingWithFlowReturn() -> {
+                callable is ServiceDeclaration.Method && callable.function.isNonSuspendingWithFlowReturn() -> {
                     (callable.function.returnType as IrSimpleType).arguments.single().typeOrFail
                 }
 
@@ -844,7 +843,7 @@ internal class RpcStubGenerator(
 
                     +arrayOfCall
 
-                    +booleanConst(!callable.function.isSuspend)
+                    +booleanConst(!callable.function.isSuspend && callable !is ServiceDeclaration.Constructor)
                 }
             }
         }

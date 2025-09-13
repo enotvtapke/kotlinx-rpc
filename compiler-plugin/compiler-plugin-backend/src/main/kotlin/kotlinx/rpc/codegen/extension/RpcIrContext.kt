@@ -101,6 +101,10 @@ internal class RpcIrContext(
         rpcInvokator.subClass("Method")
     }
 
+    val rpcInvokatorConstructor by lazy {
+        rpcInvokator.subClass("Constructor")
+    }
+
     val rpcParameter by lazy {
         getRpcIrClassSymbol("RpcParameter", "descriptor")
     }

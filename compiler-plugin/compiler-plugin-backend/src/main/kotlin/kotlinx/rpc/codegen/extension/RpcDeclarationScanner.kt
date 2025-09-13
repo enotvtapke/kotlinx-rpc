@@ -8,6 +8,7 @@ import kotlinx.rpc.codegen.common.RpcNames
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
@@ -25,6 +26,7 @@ internal object RpcDeclarationScanner {
     fun scanServiceDeclaration(service: IrClass, ctx: RpcIrContext, logger: MessageCollector): ServiceDeclaration {
         var stubClass: IrClass? = null
 
+        var constructorIndex = 0
         val declarations = service.declarations.memoryOptimizedMap { declaration ->
             when (declaration) {
                 is IrSimpleFunction -> {
@@ -36,10 +38,24 @@ internal object RpcDeclarationScanner {
                         function = declaration,
                         arguments = ctx.versionSpecificApi.run {
                             declaration.valueParametersVS().memoryOptimizedMap { param ->
-                                ServiceDeclaration.Method.Argument(param, param.type, param.hasDefaultValue())
+                                ServiceDeclaration.Argument(param, param.type, param.hasDefaultValue())
                             }
                         },
                     )
+                }
+
+                is IrConstructor -> {
+                    ServiceDeclaration.Constructor(
+                        name = "__rpcConstructor_$constructorIndex",
+                        function = declaration,
+                        arguments = ctx.versionSpecificApi.run {
+                            declaration.valueParametersVS().memoryOptimizedMap { param ->
+                                ServiceDeclaration.Argument(param, param.type, param.hasDefaultValue())
+                            }
+                        },
+                    ).also {
+                        constructorIndex += 1
+                    }
                 }
 
                 is IrProperty -> {
@@ -74,7 +90,8 @@ internal object RpcDeclarationScanner {
         return ServiceDeclaration(
             service = service,
             stubClass = stubClassNotNull,
-            methods = declarations.filterNotNull(),
+            methods = declarations.filterIsInstance<ServiceDeclaration.Method>(),
+            constructors = declarations.filterIsInstance<ServiceDeclaration.Constructor>(),
         )
     }
 }
