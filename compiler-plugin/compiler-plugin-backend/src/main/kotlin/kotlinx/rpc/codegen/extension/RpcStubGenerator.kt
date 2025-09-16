@@ -189,7 +189,7 @@ internal class RpcStubGenerator(
     }
 
     private fun IrClass.generateMethods() {
-        declaration.methods.forEach {
+        (declaration.constructors + declaration.methods).forEach {
             generateRpcMethod(it)
         }
     }
@@ -222,14 +222,14 @@ internal class RpcStubGenerator(
         "detekt.NestedBlockDepth",
         "detekt.LongMethod",
     )
-    private fun IrClass.generateRpcMethod(method: ServiceDeclaration.Method) {
+    private fun IrClass.generateRpcMethod(method: ServiceDeclaration.Callable) {
         addFunction {
-            name = method.function.name
+            name = Name.identifier(method.name)
             visibility = method.function.visibility
             returnType = method.function.returnType
             modality = Modality.OPEN
 
-            isSuspend = method.function.isSuspend
+            isSuspend = method is ServiceDeclaration.Constructor || method.function.isSuspend
         }.apply {
             val functionThisReceiver = vsApi {
                 stubClassThisReceiver.copyToVS(this@apply, origin = IrDeclarationOrigin.DEFINED)
@@ -246,10 +246,10 @@ internal class RpcStubGenerator(
                 }
             }
 
-            overriddenSymbols = listOf(method.function.symbol)
+            if (method is ServiceDeclaration.Method) overriddenSymbols = listOf(method.function.symbol)
 
             body = irBuilder(symbol).irBlockBody {
-                if (method.function.isNonSuspendingWithFlowReturn()) {
+                if (method is ServiceDeclaration.Method && method.function.isNonSuspendingWithFlowReturn()) {
                     +irReturn(
                         irRpcMethodClientCall(
                             method = method,
@@ -267,10 +267,13 @@ internal class RpcStubGenerator(
                     arguments = arguments,
                 )
 
-                if (method.function.returnType == ctx.irBuiltIns.unitType) {
-                    +call
-                } else {
-                    +irReturn(call)
+                when {
+                    method is ServiceDeclaration.Constructor -> {
+                        +call
+                        +irReturn(irGet(functionThisReceiver))
+                    }
+                    method.function.returnType == ctx.irBuiltIns.unitType -> +call
+                    else -> +irReturn(call)
                 }
             }
         }
@@ -290,11 +293,11 @@ internal class RpcStubGenerator(
      */
     @Suppress("detekt.NestedBlockDepth")
     private fun IrBlockBodyBuilder.irRpcMethodClientCall(
-        method: ServiceDeclaration.Method,
+        method: ServiceDeclaration.Callable,
         functionThisReceiver: IrValueParameter,
         arguments: List<IrValueParameter>,
     ): IrCall {
-        val clientCallee = if (method.function.isNonSuspendingWithFlowReturn()) {
+        val clientCallee = if (method is ServiceDeclaration.Method && method.function.isNonSuspendingWithFlowReturn()) {
             ctx.functions.rpcClientCallServerStreaming.symbol
         } else {
             ctx.functions.rpcClientCall.symbol
@@ -346,7 +349,7 @@ internal class RpcStubGenerator(
                     values {
                         +irGetDescriptor()
 
-                        +stringConst(method.function.name.asString())
+                        +stringConst(method.name)
 
                         +parametersParameter
 
@@ -1328,7 +1331,7 @@ internal class RpcStubGenerator(
     )
 
     private inline fun <T> vsApi(body: VersionSpecificApi.() -> T): T {
-        return ctx.versionSpecificApi.body()
+        return vsApi(ctx, body)
     }
 
     private inline fun IrMemberAccessExpression<*>.arguments(body: IrMemberAccessExpressionBuilder.() -> Unit) {

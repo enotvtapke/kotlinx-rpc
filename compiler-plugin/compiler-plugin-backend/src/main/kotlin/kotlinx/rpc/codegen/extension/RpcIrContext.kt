@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.ir.util.properties
 import org.jetbrains.kotlin.platform.konan.isNative
 import org.jetbrains.kotlin.types.Variance
 
-internal class RpcIrContext(
+class RpcIrContext(
     val pluginContext: IrPluginContext,
     val versionSpecificApi: VersionSpecificApi,
 ) {
@@ -113,6 +113,14 @@ internal class RpcIrContext(
         getRpcIrClassSymbol("RpcParameterDefault", "descriptor")
     }
 
+    val globalRpcClientConfig by lazy {
+        getRpcIrClassSymbol("GlobalRpcClientConfig")
+    }
+
+    val globalRpcClient by lazy {
+        globalRpcClientConfig.property("rpcClient")
+    }
+
     val kSerializer by lazy {
         getIrClassSymbol("kotlinx.serialization", "KSerializer")
     }
@@ -146,6 +154,12 @@ internal class RpcIrContext(
 
         val rpcClientCallServerStreaming by lazy {
             rpcClient.namedFunction("callServerStreaming")
+        }
+
+        val rpcClientWithService by lazy {
+            namedFunction("kotlinx.rpc", "withService") {
+                it.owner.parameters.count() == 1
+            }
         }
 
         val typeOf by lazy {
@@ -220,7 +234,13 @@ internal class RpcIrContext(
     }
 
     private fun IrClassSymbol.subClass(name: String): IrClassSymbol {
-        return owner.nestedClasses.single { it.name.asString() == name }.symbol
+        return owner.nestedClasses.singleOrNull { it.name.asString() == name }?.symbol
+            ?: error("Unable to find nested class `$name` of class `${this.owner.name}`")
+    }
+
+    private fun IrClassSymbol.property(name: String): IrPropertySymbol {
+        return owner.properties.singleOrNull { it.name.asString() == name }?.symbol
+            ?: error("Unable to find property `$name` of class `${this.owner.name}`")
     }
 
     private fun getRpcIrClassSymbol(name: String, subpackage: String? = null): IrClassSymbol {

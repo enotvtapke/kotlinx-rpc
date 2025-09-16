@@ -46,7 +46,7 @@ internal object RpcDeclarationScanner {
 
                 is IrConstructor -> {
                     ServiceDeclaration.Constructor(
-                        name = "__rpcConstructor_$constructorIndex",
+                        name = rpcConstructorName(constructorIndex),
                         function = declaration,
                         arguments = ctx.versionSpecificApi.run {
                             declaration.valueParametersVS().memoryOptimizedMap { param ->
@@ -95,6 +95,8 @@ internal object RpcDeclarationScanner {
         )
     }
 }
+
+fun rpcConstructorName(constructorIndex: Int): String = "__rpcConstructor_$constructorIndex"
 
 private fun unsupportedDeclaration(service: IrClass, declaration: IrDeclaration, logger: MessageCollector): Nothing? {
     logger.report(

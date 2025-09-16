@@ -4,6 +4,7 @@
 
 package kotlinx.rpc.codegen.extension
 
+import kotlinx.rpc.codegen.VersionSpecificApi
 import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.builders.declarations.IrFieldBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addDefaultGetter
@@ -95,3 +96,5 @@ fun <T> List<T>.compactIfPossible(): List<T> =
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER") // TODO(KTIJ-26314): Remove this suppression
 fun IrFactory.createExpressionBody(expression: IrExpression): IrExpressionBody =
     createExpressionBody(expression.startOffset, expression.endOffset, expression)
+
+inline fun <T> vsApi(ctx: RpcIrContext, body: VersionSpecificApi.() -> T): T = ctx.versionSpecificApi.body()

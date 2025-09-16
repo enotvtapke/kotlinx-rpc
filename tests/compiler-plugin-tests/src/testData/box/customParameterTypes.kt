@@ -7,6 +7,7 @@
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.rpc.withService
+import kotlinx.rpc.GlobalRpcClientConfig
 import kotlinx.rpc.annotations.Rpc
 import kotlinx.rpc.codegen.test.TestRpcClient
 
@@ -20,8 +21,9 @@ class BoxService {
 }
 
 fun box(): String = runBlocking {
-    val test1 = TestRpcClient.withService<BoxService>().test1(TestData("value"))
-    val test2 = TestRpcClient.withService<BoxService>().test2(TestData("value"))
+    val box = BoxService()
+    val test1 = box.test1(TestData("value"))
+    val test2 = box.test2(TestData("value"))
 
     if (test1 == "call_42" && test2 == "call_42") "OK" else "Fail: test1=$test1, test2=$test2"
 }

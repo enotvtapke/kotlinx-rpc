@@ -34,8 +34,9 @@ FILE: customParameterTypes.kt
     }
     public final fun box(): R|kotlin/String| {
         ^box R|kotlinx/coroutines/runBlocking|<R|kotlin/String|>(<L> = runBlocking@fun R|kotlinx/coroutines/CoroutineScope|.<anonymous>(): R|kotlin/String| <inline=NoInline, kind=EXACTLY_ONCE>  {
-            lval test1: R|kotlin/String| = Q|kotlinx/rpc/codegen/test/TestRpcClient|.R|kotlinx/rpc/withService|<R|BoxService|>().R|/BoxService.test1|(R|/TestData.TestData|(String(value)))
-            lval test2: R|kotlin/String| = Q|kotlinx/rpc/codegen/test/TestRpcClient|.R|kotlinx/rpc/withService|<R|BoxService|>().R|/BoxService.test2|(R|/TestData.TestData|(String(value)))
+            lval box: R|BoxService| = R|/BoxService.BoxService|()
+            lval test1: R|kotlin/String| = R|<local>/box|.R|/BoxService.test1|(R|/TestData.TestData|(String(value)))
+            lval test2: R|kotlin/String| = R|<local>/box|.R|/BoxService.test2|(R|/TestData.TestData|(String(value)))
             ^ when () {
                 ==(R|<local>/test1|, String(call_42)) && ==(R|<local>/test2|, String(call_42)) ->  {
                     String(OK)
