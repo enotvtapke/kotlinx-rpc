@@ -1150,7 +1150,7 @@ internal class RpcStubGenerator(
     // default constructor implementation
     private fun IrClass.addDefaultConstructor(constructor: IrConstructor) {
         constructor.body = irBuilder(constructor.symbol).irBlockBody {
-            if (declaration.service.isInterface || declaration.service.isObject) {
+            if (declaration.service.isInterface || this@addDefaultConstructor.isObject) {
                 +irDelegatingConstructorCall(context.irBuiltIns.anyClass.owner.constructors.single())
             } else {
                 +irDelegatingConstructorCall(
