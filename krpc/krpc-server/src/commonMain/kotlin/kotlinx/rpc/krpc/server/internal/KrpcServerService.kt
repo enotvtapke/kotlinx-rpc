@@ -179,10 +179,7 @@ internal class KrpcServerService<@Rpc T : Any>(
                     }
                 }
 
-                val returnType = when(callable.invokator){
-                    is RpcInvokator.Constructor -> RpcTypeDefault(typeOf<Unit>(), listOf())
-                    is RpcInvokator.Method -> callable.returnType
-                }
+                val returnType = callable.returnType
                 val returnSerializer = serialFormat.serializersModule
                     .buildContextual(returnType)
 

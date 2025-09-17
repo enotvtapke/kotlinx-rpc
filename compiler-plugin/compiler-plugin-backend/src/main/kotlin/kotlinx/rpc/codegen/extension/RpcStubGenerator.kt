@@ -753,6 +753,10 @@ internal class RpcStubGenerator(
             putConstructorTypeArgument(0, declaration.serviceType)
 
             val returnType = when {
+                callable is ServiceDeclaration.Constructor -> {
+                    ctx.irBuiltIns.unitType
+                }
+
                 callable is ServiceDeclaration.Method && callable.function.isNonSuspendingWithFlowReturn() -> {
                     (callable.function.returnType as IrSimpleType).arguments.single().typeOrFail
                 }
