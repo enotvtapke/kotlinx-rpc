@@ -159,13 +159,12 @@ public abstract class KrpcServer(
         serviceFactory: () -> Service,
     ): KrpcServerService<Service> {
         return KrpcServerService(
-            service = serviceFactory(),
             descriptor = descriptor,
             config = config,
             connector = connector,
             supportedPlugins = supportedPlugins,
             serverScope = internalScope,
-        )
+        ).apply { initService(serviceFactory()) }
     }
 
     private fun <@Rpc Service : Any> createNewUninitializedServiceInstance(

@@ -22,16 +22,21 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlin.reflect.typeOf
 
 internal class KrpcServerService<@Rpc T : Any>(
-    private var service: T? = null,
     private val descriptor: RpcServiceDescriptor<T>,
     private val config: KrpcConfig.Server,
     private val connector: KrpcServerConnector,
     private val serverScope: CoroutineScope,
     private val supportedPlugins: Set<KrpcPlugin>,
 ) {
+    private lateinit var service: T
+
     private val logger = RpcInternalCommonLogger.logger(rpcInternalObjectId(descriptor.fqName))
 
     private val requestMap = RpcInternalConcurrentHashMap<String, RpcRequest>()
+
+    fun initService(service: T) {
+        this.service = service
+    }
 
     suspend fun accept(message: KrpcCallMessage) {
         val result = runCatching {
@@ -153,16 +158,17 @@ internal class KrpcServerService<@Rpc T : Any>(
 
                 val value = when (val invokator = callable.invokator) {
                     is RpcInvokator.Method -> {
-                        invokator.call(
-                            service ?: error(
+                        if (!::service.isInitialized)
+                            error(
                                 "Server tried to invoke method '$callableName' of the uninitialized service. " +
                                         "Constructor of the service should be invocated first."
-                            ), data
-                        )
+                            )
+                        invokator.call(service, data)
                     }
 
                     is RpcInvokator.Constructor -> {
-                        service = invokator.call(data)
+                        if (::service.isInitialized) error("Service `${descriptor.fqName}` is already initialized")
+                        initService(invokator.call(data))
                     }
                 }.let { interceptedValue ->
                     // KRPC-173
