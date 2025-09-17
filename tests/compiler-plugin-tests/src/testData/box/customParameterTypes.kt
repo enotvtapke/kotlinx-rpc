@@ -14,14 +14,18 @@ import kotlinx.rpc.codegen.test.TestRpcClient
 data class TestData(val value: String)
 
 @Rpc
-class BoxService {
+class BoxService(counter: Int) {
+    constructor() : this(0)
+
+    constructor(p: String): this(0)
+
     suspend fun test1(testData: TestData): String = ""
 
     suspend fun test2(testData: TestData): String = ""
 }
 
 fun box(): String = runBlocking {
-    val box = BoxService()
+    val box = BoxService("s")
     val test1 = box.test1(TestData("value"))
     val test2 = box.test2(TestData("value"))
 

@@ -90,7 +90,9 @@ internal class RpcIrServiceConstructorCallTransformer : IrTransformer<RpcIrConte
                     type,
                     serviceStub
                 )
-                arguments.addAll(expression.arguments)
+                expression.arguments.forEachIndexed { index, irExpression ->
+                    arguments[index + 1] = irExpression
+                }
             }
         }
     }
