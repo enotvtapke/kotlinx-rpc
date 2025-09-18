@@ -54,8 +54,8 @@ annotation class Grpc
 @Grpc
 interface MyGrpcService
 
-<!WRONG_RPC_ANNOTATION_TARGET!>@Grpc<!>
+@Grpc
 class WrongGrpcTarget
 
-<!WRONG_RPC_ANNOTATION_TARGET!>@Rpc<!>
+@Rpc
 class WrongRpcTarget

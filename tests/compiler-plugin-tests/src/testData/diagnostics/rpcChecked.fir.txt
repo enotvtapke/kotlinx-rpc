@@ -59,6 +59,12 @@ FILE: rpcChecked.kt
             super<R|kotlin/Any|>()
         }
 
+        public final class $rpcServiceStub : R|kotlin/Any| {
+            public final companion object Companion : R|kotlin/Any| {
+            }
+
+        }
+
     }
     @R|Grpc|() public abstract interface MyGrpcService : R|kotlin/Any| {
     }
@@ -71,6 +77,12 @@ FILE: rpcChecked.kt
     @R|kotlinx/rpc/annotations/Rpc|() public final class WrongRpcTarget : R|kotlin/Any| {
         public constructor(): R|WrongRpcTarget| {
             super<R|kotlin/Any|>()
+        }
+
+        public final class $rpcServiceStub : R|kotlin/Any| {
+            public final companion object Companion : R|kotlin/Any| {
+            }
+
         }
 
     }

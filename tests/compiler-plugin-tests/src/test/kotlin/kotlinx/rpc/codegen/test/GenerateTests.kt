@@ -6,6 +6,7 @@ package kotlinx.rpc.codegen.test
 
 import kotlinx.rpc.codegen.test.runners.AbstractBoxTest
 import kotlinx.rpc.codegen.test.runners.AbstractDiagnosticTest
+import kotlinx.rpc.codegen.test.runners.AbstractColoringBoxTest
 import org.jetbrains.kotlin.generators.generateTestGroupSuiteWithJUnit5
 
 fun main() {
@@ -17,6 +18,10 @@ fun main() {
 
             testClass<AbstractBoxTest> {
                 model("box")
+            }
+
+            testClass<AbstractColoringBoxTest> {
+                model("coloringBox")
             }
         }
     }
