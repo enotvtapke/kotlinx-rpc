@@ -38,9 +38,9 @@ data class SimpleFilter(val text: String)
 
 @Rpc
 interface MyService {
-    <!FIELD_IN_RPC_SERVICE!>val flow: Flow<Int><!>
-    <!FIELD_IN_RPC_SERVICE!>val stateFlow: StateFlow<Int><!>
-    <!FIELD_IN_RPC_SERVICE!>val sharedFlow: SharedFlow<Int><!>
+    <!PUBLIC_FIELD_IN_RPC_SERVICE!>val flow: Flow<Int><!>
+    <!PUBLIC_FIELD_IN_RPC_SERVICE!>val stateFlow: StateFlow<Int><!>
+    <!PUBLIC_FIELD_IN_RPC_SERVICE!>val sharedFlow: SharedFlow<Int><!>
     suspend fun state(<!STATE_FLOW_IN_RPC_SERVICE!>flow: StateFlow<Int><!>): <!STATE_FLOW_IN_RPC_SERVICE!>StateFlow<Int><!>
     suspend fun shared(<!SHARED_FLOW_IN_RPC_SERVICE!>flow: SharedFlow<Int><!>): <!SHARED_FLOW_IN_RPC_SERVICE!>SharedFlow<Int><!>
     suspend fun deepState(<!STATE_FLOW_IN_RPC_SERVICE!>flow: Wrapper<StateFlow<Int>><!>)

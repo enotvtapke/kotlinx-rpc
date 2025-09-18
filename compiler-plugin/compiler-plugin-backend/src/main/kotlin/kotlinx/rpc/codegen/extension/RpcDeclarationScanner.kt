@@ -7,11 +7,8 @@ package kotlinx.rpc.codegen.extension
 import kotlinx.rpc.codegen.common.RpcNames
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.declarations.IrConstructor
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
-import org.jetbrains.kotlin.ir.declarations.IrProperty
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.util.dumpKotlinLike
 import org.jetbrains.kotlin.ir.util.hasDefaultValue
 
@@ -59,14 +56,14 @@ internal object RpcDeclarationScanner {
                 }
 
                 is IrProperty -> {
-                    if (declaration.isFakeOverride) {
-                        return@memoryOptimizedMap null
+                    if (!declaration.isFakeOverride &&
+                        declaration.visibility.delegate in listOf(Visibilities.Public, Visibilities.Internal)
+                    ) {
+                        error(
+                            "Public or internal fields are not supported in @Rpc services, this error should be caught by frontend."
+                        )
                     }
-
-                    error(
-                        "Fields are not supported in @Rpc services, this error should be caught by frontend. " +
-                                "Please report this issue to the kotlinx-rpc maintainers."
-                    )
+                    return@memoryOptimizedMap null
                 }
 
                 is IrClass -> {

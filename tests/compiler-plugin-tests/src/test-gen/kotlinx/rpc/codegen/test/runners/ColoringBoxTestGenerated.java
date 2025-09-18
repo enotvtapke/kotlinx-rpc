@@ -22,6 +22,12 @@ public class ColoringBoxTestGenerated extends AbstractColoringBoxTest {
   }
 
   @Test
+  @TestMetadata("classWithFields.kt")
+  public void testClassWithFields() {
+    runTest("src/testData/coloringBox/classWithFields.kt");
+  }
+
+  @Test
   @TestMetadata("simple.kt")
   public void testSimple() {
     runTest("src/testData/coloringBox/simple.kt");

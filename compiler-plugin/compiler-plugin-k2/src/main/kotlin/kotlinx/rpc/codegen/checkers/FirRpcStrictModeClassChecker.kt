@@ -9,6 +9,7 @@ import kotlinx.rpc.codegen.checkers.diagnostics.FirRpcStrictModeDiagnostics
 import kotlinx.rpc.codegen.common.RpcClassId
 import kotlinx.rpc.codegen.vsApi
 import org.jetbrains.kotlin.KtSourceElement
+import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.diagnostics.KtDiagnosticFactory0
 import org.jetbrains.kotlin.diagnostics.reportOn
@@ -41,7 +42,11 @@ object FirRpcStrictModeClassChecker {
         vsApi { declaration.declarationsVS(context.session) }.forEach { declaration ->
             when (declaration) {
                 is FirPropertySymbol -> {
-                    reporter.reportOn(declaration.source, FirRpcStrictModeDiagnostics.FIELD_IN_RPC_SERVICE, context)
+                    if (declaration.resolvedStatus.visibility in listOf(Visibilities.Public, Visibilities.Internal)) {
+                        reporter.reportOn(
+                            declaration.source, FirRpcStrictModeDiagnostics.PUBLIC_FIELD_IN_RPC_SERVICE, context
+                        )
+                    }
                 }
 
                 is FirNamedFunctionSymbol -> {

@@ -1,0 +1,37 @@
+FILE: classWithFields.kt
+    @R|kotlinx/rpc/annotations/Rpc|() public open class BoxService : R|kotlin/Any| {
+        public constructor(): R|BoxService| {
+            super<R|kotlin/Any|>()
+        }
+
+        private final val field: R|kotlin/String| = String(field)
+            private get(): R|kotlin/String|
+
+        public open suspend fun simple(): R|kotlin/String| {
+            ^simple String(str)
+        }
+
+        public final class $rpcServiceStub : R|kotlin/Any| {
+            public final companion object Companion : R|kotlin/Any| {
+            }
+
+        }
+
+    }
+    public final fun box(): R|kotlin/String| {
+        ^box R|kotlinx/coroutines/runBlocking|<R|kotlin/String|>(<L> = runBlocking@fun R|kotlinx/coroutines/CoroutineScope|.<anonymous>(): R|kotlin/String| <inline=NoInline, kind=EXACTLY_ONCE>  {
+            Q|kotlinx/rpc/GlobalRpcClientConfig|.R|kotlinx/rpc/GlobalRpcClientConfig.rpcClient| = Q|kotlinx/rpc/codegen/test/TestRpcClient|
+            lval service: R|BoxService| = R|/BoxService.BoxService|()
+            lval result: R|kotlin/String| = R|<local>/service|.R|/BoxService.simple|()
+            ^ when () {
+                ==(R|<local>/result|, String(call_42)) ->  {
+                    String(OK)
+                }
+                else ->  {
+                    <strcat>(String(Fail: ), R|<local>/result|)
+                }
+            }
+
+        }
+        )
+    }

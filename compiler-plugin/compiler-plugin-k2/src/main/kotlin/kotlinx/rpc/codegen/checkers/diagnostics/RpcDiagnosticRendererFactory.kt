@@ -90,8 +90,8 @@ object RpcStrictModeDiagnosticRendererFactory : BaseDiagnosticRendererFactory() 
         )
 
         map.put(
-            factory = FirRpcStrictModeDiagnostics.FIELD_IN_RPC_SERVICE,
-            message = message("Field declaration"),
+            factory = FirRpcStrictModeDiagnostics.PUBLIC_FIELD_IN_RPC_SERVICE,
+            message = message("Public or internal field declaration"),
         )
     }
 

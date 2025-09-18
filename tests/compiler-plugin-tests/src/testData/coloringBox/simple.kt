@@ -11,7 +11,6 @@ import kotlinx.rpc.GlobalRpcClientConfig
 import kotlinx.rpc.annotations.Rpc
 import kotlinx.rpc.codegen.test.TestRpcClient
 
-
 data class TestData(val value: String)
 
 @Rpc

@@ -42,7 +42,7 @@ object FirRpcStrictModeDiagnostics : RpcKtDiagnosticsContainer() {
     val NESTED_STREAMING_IN_RPC_SERVICE by error0<KtElement>()
     val SUSPENDING_SERVER_STREAMING_IN_RPC_SERVICE by error0<KtElement>()
     val NON_TOP_LEVEL_SERVER_STREAMING_IN_RPC_SERVICE by error0<KtElement>()
-    val FIELD_IN_RPC_SERVICE by error0<KtElement>()
+    val PUBLIC_FIELD_IN_RPC_SERVICE by error0<KtElement>()
 
     override fun getRendererFactoryVs(): BaseDiagnosticRendererFactory {
         return RpcStrictModeDiagnosticRendererFactory
