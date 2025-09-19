@@ -5,6 +5,7 @@
 package kotlinx.rpc.codegen.extension
 
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
@@ -37,7 +38,7 @@ class ServiceDeclaration(
 
     class Constructor(
         override val name: String,
-        override val function: IrFunction,
+        override val function: IrConstructor,
         override val arguments: List<Argument>,
     ) : Callable
 

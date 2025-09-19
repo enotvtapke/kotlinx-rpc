@@ -1153,10 +1153,9 @@ internal class RpcStubGenerator(
             if (declaration.service.isInterface || this@addDefaultConstructor.isObject) {
                 +irDelegatingConstructorCall(context.irBuiltIns.anyClass.owner.constructors.single())
             } else {
-                +irDelegatingConstructorCall(
-                    declaration.service.constructors.firstOrNull { it.parameters.isEmpty() }
-                        ?: error("Rpc class ${declaration.service.name} has no default constructor")
-                )
+                +irDelegatingConstructorCall(declaration.constructors.firstOrNull { constructor ->
+                    constructor.arguments.all { it.isOptional }
+                }?.function ?: error("Rpc class ${declaration.service.name} has no default constructor"))
             }
             +IrInstanceInitializerCallImpl(
                 startOffset = startOffset,
