@@ -14,7 +14,11 @@ import kotlinx.rpc.codegen.test.TestRpcClient
 data class TestData(val value: String)
 
 @Rpc
-open class BoxService {
+open class BoxService(counter: Int) {
+    constructor() : this(0)
+
+    constructor(p: String): this(0)
+
     open suspend fun test1(testData: TestData): String = ""
 
     open suspend fun test2(testData: TestData): String = ""
@@ -23,7 +27,7 @@ open class BoxService {
 fun box(): String = runBlocking {
     GlobalRpcClientConfig.rpcClient = TestRpcClient
 
-    val box = BoxService()
+    val box = BoxService("s")
     val test1 = box.test1(TestData("value"))
     val test2 = box.test2(TestData("value"))
 

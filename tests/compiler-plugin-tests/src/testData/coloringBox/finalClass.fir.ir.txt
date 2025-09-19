@@ -1,4 +1,4 @@
-FILE fqName:<root> fileName:/simple.kt
+FILE fqName:<root> fileName:/finalClass.kt
   CLASS CLASS name:BoxService modality:OPEN visibility:public superTypes:[kotlin.Any]
     annotations:
       Rpc

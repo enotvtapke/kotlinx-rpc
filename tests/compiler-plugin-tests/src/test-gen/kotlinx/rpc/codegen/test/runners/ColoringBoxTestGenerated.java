@@ -28,6 +28,18 @@ public class ColoringBoxTestGenerated extends AbstractColoringBoxTest {
   }
 
   @Test
+  @TestMetadata("finalClass.kt")
+  public void testFinalClass() {
+    runTest("src/testData/coloringBox/finalClass.kt");
+  }
+
+  @Test
+  @TestMetadata("severalConstructors.kt")
+  public void testSeveralConstructors() {
+    runTest("src/testData/coloringBox/severalConstructors.kt");
+  }
+
+  @Test
   @TestMetadata("simple.kt")
   public void testSimple() {
     runTest("src/testData/coloringBox/simple.kt");

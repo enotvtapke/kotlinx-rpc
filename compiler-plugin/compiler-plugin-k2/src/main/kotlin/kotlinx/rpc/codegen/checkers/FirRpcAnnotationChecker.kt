@@ -24,6 +24,7 @@ object FirRpcAnnotationChecker {
         context: CheckerContext,
         reporter: DiagnosticReporter,
     ) {
+        declaration.status.modality
         val rpcMetaAnnotated = context.session.predicateBasedProvider.matches(FirRpcPredicates.rpcMeta, declaration)
 
         val isMetaAnnotated = declaration.classKind != ClassKind.ANNOTATION_CLASS

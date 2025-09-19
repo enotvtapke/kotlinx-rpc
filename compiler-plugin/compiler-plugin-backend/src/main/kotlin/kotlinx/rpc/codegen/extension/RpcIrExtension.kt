@@ -21,6 +21,8 @@ class RpcIrExtension(configuration: CompilerConfiguration) : IrGenerationExtensi
     ) {
         val context = RpcIrContext(pluginContext, VersionSpecificApi.INSTANCE)
 
+        moduleFragment.transform(RpcIrServiceStatusTransformer(), context)
+
         val processor = RpcIrServiceProcessorDelegate(RpcIrServiceProcessor(logger))
         moduleFragment.transform(processor, context)
         moduleFragment.transform(RpcIrServiceConstructorCallTransformer(), context)
