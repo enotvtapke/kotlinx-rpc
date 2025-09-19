@@ -160,7 +160,7 @@ public abstract class KrpcClient : RpcClient, KrpcEndpoint {
         KrpcClientConnector(config.serialFormatInitializer.build(), transport, config.waitForServices)
     }
 
-    private var connectionId: Long? = null
+    private var connectionId: Long by Delegates.notNull()
 
     @InternalRpcApi
     final override val sender: KrpcMessageSender
@@ -210,7 +210,12 @@ public abstract class KrpcClient : RpcClient, KrpcEndpoint {
     private fun handleProtocolMessage(message: KrpcProtocolMessage) {
         when (message) {
             is KrpcProtocolMessage.Handshake -> {
-                connectionId = message.connectionId
+                connectionId = message.connectionId ?: run {
+                    val failure = "Server sent null connectionId in handshake message"
+                    logger.error { failure }
+                    serverSupportedPlugins.completeExceptionally(IllegalStateException(failure))
+                    return
+                }
 
                 serverSupportedPlugins.complete(message.supportedPlugins)
             }
