@@ -24,11 +24,11 @@ object FirRpcAnnotationChecker {
         context: CheckerContext,
         reporter: DiagnosticReporter,
     ) {
-        declaration.status.modality
-        val rpcMetaAnnotated = context.session.predicateBasedProvider.matches(FirRpcPredicates.rpcMeta, declaration)
-
-        val isMetaAnnotated = declaration.classKind != ClassKind.ANNOTATION_CLASS
-
+        // TODO this checker should be deleted
+//        val rpcMetaAnnotated = context.session.predicateBasedProvider.matches(FirRpcPredicates.rpcMeta, declaration)
+//
+//        val isMetaAnnotated = declaration.classKind != ClassKind.ANNOTATION_CLASS
+//
 //        if (!declaration.isInterface && isMetaAnnotated && rpcMetaAnnotated) {
 //            reporter.reportOn(
 //                source = declaration.symbol.rpcAnnotationSource(

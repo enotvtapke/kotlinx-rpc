@@ -529,7 +529,7 @@ public abstract class KrpcClient : RpcClient, KrpcEndpoint {
         }
     }
 
-    private val clientStreamContext: ClientStreamContext = ClientStreamContext(connectionId = connectionId)
+    private val clientStreamContext: ClientStreamContext by lazy { ClientStreamContext(connectionId = connectionId) }
 
     private val serialFormat: SerialFormat by lazy {
         val module = SerializersModule {
