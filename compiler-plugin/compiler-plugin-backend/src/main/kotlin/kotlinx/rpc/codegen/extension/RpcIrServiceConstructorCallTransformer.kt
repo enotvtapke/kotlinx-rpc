@@ -40,14 +40,18 @@ internal class RpcIrServiceConstructorCallTransformer : IrTransformer<RpcIrConte
         if (!serviceClass.hasAnnotation(RpcClassId.rpcAnnotation)) {
             return super.visitConstructorCall(expression, data)
         }
-        val serviceStubClass = serviceClass.nestedClasses.single { it.name == RpcNames.SERVICE_STUB_NAME }
-        val rpcConstructorFunction = serviceStubClass.functions.single { function ->
-            function.name == Name.identifier(
-                rpcConstructorName(
-                    serviceClass.constructors.indexOfFirst { it.symbol == expression.symbol }
-                )
+        val serviceStubClass = serviceClass.nestedClasses.singleOrNull { it.name == RpcNames.SERVICE_STUB_NAME } ?:
+            error("No stub class is present in rpc service ${serviceClass.name.asString()}")
+        val constructorName = Name.identifier(
+            rpcConstructorName(
+                serviceClass.constructors.indexOfFirst { it.symbol == expression.symbol }.takeIf { it != -1 }
+                    ?: error("No constructor corresponding to constructor call is present in rpc service ${serviceClass.name.asString()}")
             )
-        }
+        )
+        val rpcConstructorFunction = serviceStubClass.functions.singleOrNull { function ->
+            function.name == constructorName
+        } ?: error("No constructor with name ${constructorName.asString()} is present in stub for rpc service ${serviceClass.name.asString()}. " +
+                "Available stub functions: ${serviceStubClass.functions.joinToString { it.name.asString() }}")
 
         return vsApi(data) {
             val serviceStub = IrCallImpl(
