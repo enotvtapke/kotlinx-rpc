@@ -5,7 +5,9 @@
 package kotlinx.rpc.krpc.ktor.server
 
 import io.ktor.server.websocket.*
+import kotlinx.rpc.RemoteClassContext
 import kotlinx.rpc.RpcServer
+import kotlinx.rpc.annotations.Remote
 import kotlinx.rpc.annotations.Rpc
 import kotlinx.rpc.krpc.KrpcConfigBuilder
 import kotlin.reflect.KClass
@@ -65,7 +67,7 @@ public class KrpcRoute(
         registerService(Service::class, serviceFactory)
     }
 
-    public fun <@Rpc Service : Any> registerServiceForCreation(
+    public fun <@Remote(RemoteClassContext::class) Service : Any> registerServiceForCreation(
         serviceKClass: KClass<Service>,
     ) {
         registrations.add { server ->

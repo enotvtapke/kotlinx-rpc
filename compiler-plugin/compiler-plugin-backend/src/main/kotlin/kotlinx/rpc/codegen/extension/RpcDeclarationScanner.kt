@@ -35,7 +35,7 @@ internal object RpcDeclarationScanner {
                         function = declaration,
                         arguments = ctx.versionSpecificApi.run {
                             declaration.valueParametersVS().memoryOptimizedMap { param ->
-                                ServiceDeclaration.Argument(param, param.type, param.hasDefaultValue())
+                                ServiceDeclaration.Argument(param, param.type, param.hasDefaultValue(), param.defaultValue)
                             }
                         },
                     )
@@ -47,7 +47,7 @@ internal object RpcDeclarationScanner {
                         function = declaration,
                         arguments = ctx.versionSpecificApi.run {
                             declaration.valueParametersVS().memoryOptimizedMap { param ->
-                                ServiceDeclaration.Argument(param, param.type, param.hasDefaultValue())
+                                ServiceDeclaration.Argument(param, param.type, param.hasDefaultValue(), param.defaultValue)
                             }
                         },
                     ).also {

@@ -11,7 +11,7 @@ import kotlinx.rpc.codegen.test.ServerClassContext
 data class TestData(val value: String)
 
 @Remote(ServerClassContext::class)
-open class BoxService(counter: Int = 0) {
+open class BoxService(first: Int = -1, counter: Int = 1) {
 
     open suspend fun test1(testData: TestData): String = ""
 
@@ -19,7 +19,7 @@ open class BoxService(counter: Int = 0) {
 }
 
 fun box(): String = runBlocking {
-    val box = BoxService(1) // TODO BoxService() does not work because generated stub constructor __rpc_constructor_0 does not copy default parameters from original constructor
+    val box = BoxService(counter = 0)
     val test1 = box.test1(TestData("value"))
     val test2 = box.test2(TestData("value"))
 

@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
+import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.kotlinFqName
@@ -46,5 +47,6 @@ class ServiceDeclaration(
         val value: IrValueParameter,
         val type: IrType,
         val isOptional: Boolean,
+        val defaultValue: IrExpressionBody?,
     )
 }

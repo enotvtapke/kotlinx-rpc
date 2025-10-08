@@ -243,6 +243,8 @@ internal class RpcStubGenerator(
                 addValueParameter {
                     name = arg.value.name
                     type = arg.type
+                }.apply {
+                    defaultValue = arg.defaultValue?.deepCopyWithSymbols()
                 }
             }
 
