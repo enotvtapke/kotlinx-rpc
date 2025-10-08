@@ -823,7 +823,7 @@ internal class RpcStubGenerator(
                                 values {
                                     +stringConst(parameter.value.name.asString())
                                     +irRpcTypeCall(parameter.type)
-                                    +booleanConst(parameter.isOptional)
+                                    +booleanConst(parameter.defaultValue != null)
                                     +irListOfAnnotations(parameter.value)
                                 }
                             }
@@ -1156,7 +1156,7 @@ internal class RpcStubGenerator(
                 +irDelegatingConstructorCall(context.irBuiltIns.anyClass.owner.constructors.single())
             } else {
                 +irDelegatingConstructorCall(declaration.constructors.firstOrNull { constructor ->
-                    constructor.arguments.all { it.isOptional }
+                    constructor.arguments.all { it.defaultValue != null }
                 }?.function ?: error("Rpc class ${declaration.service.name} has no default constructor"))
             }
             +IrInstanceInitializerCallImpl(

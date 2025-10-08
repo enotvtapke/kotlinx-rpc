@@ -46,7 +46,6 @@ class ServiceDeclaration(
     class Argument(
         val value: IrValueParameter,
         val type: IrType,
-        val isOptional: Boolean,
         val defaultValue: IrExpressionBody?,
     )
 }
