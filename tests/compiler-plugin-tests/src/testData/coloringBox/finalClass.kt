@@ -4,24 +4,19 @@
 
 // TARGET_BACKEND: JVM
 
-import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
-import kotlinx.rpc.withService
-import kotlinx.rpc.GlobalRpcClientConfig
-import kotlinx.rpc.annotations.Rpc
-import kotlinx.rpc.codegen.test.TestRpcClient
+import kotlinx.rpc.annotations.Remote
+import kotlinx.rpc.codegen.test.ServerClassContext
 
 data class TestData(val value: String)
 
-@Rpc
+@Remote(ServerClassContext::class)
 class BoxService {
     suspend fun test1(testData: TestData): String = ""
     suspend fun test2(testData: TestData): String = ""
 }
 
 fun box(): String = runBlocking {
-    GlobalRpcClientConfig.rpcClient = TestRpcClient
-
     val box = BoxService()
     val test1 = box.test1(TestData("value"))
     val test2 = box.test2(TestData("value"))

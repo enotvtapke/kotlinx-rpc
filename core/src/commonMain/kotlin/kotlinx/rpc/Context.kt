@@ -4,6 +4,9 @@
 
 package kotlinx.rpc
 
-public object GlobalRpcClientConfig {
-    public lateinit var rpcClient: RpcClient
+public interface RemoteClassContext {
+    public val context: NetworkContext
+    public val rpcClient: RpcClient
 }
+
+public interface NetworkContext

@@ -4,7 +4,7 @@
 
 package kotlinx.rpc.codegen.extension
 
-import kotlinx.rpc.codegen.common.RpcClassId
+import kotlinx.rpc.codegen.common.RpcClassId.remoteAnnotation
 import kotlinx.rpc.codegen.common.RpcNames
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
@@ -14,11 +14,14 @@ import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
+import org.jetbrains.kotlin.ir.types.IrSimpleType
+import org.jetbrains.kotlin.ir.types.IrTypeProjection
 import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.functions
-import org.jetbrains.kotlin.ir.util.hasAnnotation
+import org.jetbrains.kotlin.ir.util.getAnnotation
+import org.jetbrains.kotlin.ir.util.getValueArgument
 import org.jetbrains.kotlin.ir.util.nestedClasses
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
 import org.jetbrains.kotlin.name.Name
@@ -28,7 +31,7 @@ internal class RpcIrServiceConstructorCallTransformer : IrTransformer<RpcIrConte
         declaration: IrClass,
         data: RpcIrContext
     ): IrStatement {
-        if (declaration.hasAnnotation(RpcClassId.rpcAnnotation)) return declaration
+        if (declaration.remote()) return declaration
         return super.visitClass(declaration, data)
     }
 
@@ -37,7 +40,7 @@ internal class RpcIrServiceConstructorCallTransformer : IrTransformer<RpcIrConte
         data: RpcIrContext
     ): IrElement {
         val serviceClass = expression.type.classOrFail.owner
-        if (!serviceClass.hasAnnotation(RpcClassId.rpcAnnotation)) {
+        if (!serviceClass.remote()) {
             return super.visitConstructorCall(expression, data)
         }
         val serviceStubClass = serviceClass.nestedClasses.singleOrNull { it.name == RpcNames.SERVICE_STUB_NAME } ?:
@@ -53,6 +56,12 @@ internal class RpcIrServiceConstructorCallTransformer : IrTransformer<RpcIrConte
         } ?: error("No constructor with name ${constructorName.asString()} is present in stub for rpc service ${serviceClass.name.asString()}. " +
                 "Available stub functions: ${serviceStubClass.functions.joinToString { it.name.asString() }}")
 
+        val remoteAnnotationCall = serviceClass.getAnnotation(remoteAnnotation.asSingleFqName())!!
+        val contextObjectClassExpression = remoteAnnotationCall.getValueArgument(Name.identifier("context"))
+            ?: error("Annotation '${remoteAnnotation.asSingleFqName().asString()}' should have an argument named `context`")
+        val contextObjectSymbol = ((contextObjectClassExpression.type as? IrSimpleType)?.arguments[0] as? IrTypeProjection)?.type?.classOrFail
+            ?: error("Cannot get NetworkContext from type ${contextObjectClassExpression.type}")
+
         return vsApi(data) {
             val serviceStub = IrCallImpl(
                 startOffset = expression.startOffset,
@@ -65,15 +74,15 @@ internal class RpcIrServiceConstructorCallTransformer : IrTransformer<RpcIrConte
                 val defaultRpcClient = IrCallImpl(
                     startOffset = expression.startOffset,
                     endOffset = expression.endOffset,
-                    type = data.globalRpcClient.owner.getter!!.returnType,
-                    symbol = data.globalRpcClient.owner.getter!!.symbol,
+                    type = data.remoteClassContextRpcClient.owner.getter!!.returnType,
+                    symbol = data.remoteClassContextRpcClient.owner.getter!!.symbol,
                     typeArgumentsCount = 0
                 ).apply {
                     dispatchReceiver = IrGetObjectValueImpl(
                         expression.startOffset,
                         expression.endOffset,
-                        data.globalRpcClientConfig.defaultType,
-                        data.globalRpcClientConfig
+                        contextObjectSymbol.defaultType,
+                        contextObjectSymbol
                     )
                 }
                 arguments[0] = defaultRpcClient

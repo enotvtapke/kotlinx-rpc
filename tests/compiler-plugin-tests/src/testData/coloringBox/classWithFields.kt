@@ -5,19 +5,16 @@
 // TARGET_BACKEND: JVM
 
 import kotlinx.coroutines.runBlocking
-import kotlinx.rpc.withService
-import kotlinx.rpc.annotations.Rpc
-import kotlinx.rpc.codegen.test.TestRpcClient
-import kotlinx.rpc.GlobalRpcClientConfig
+import kotlinx.rpc.annotations.Remote
+import kotlinx.rpc.codegen.test.ServerClassContext
 
-@Rpc
+@Remote(ServerClassContext::class)
 open class BoxService {
     private val field: String = "field"
     open suspend fun simple(): String = "str"
 }
 
 fun box(): String = runBlocking {
-    GlobalRpcClientConfig.rpcClient = TestRpcClient
     val service = BoxService()
     val result = service.simple()
 

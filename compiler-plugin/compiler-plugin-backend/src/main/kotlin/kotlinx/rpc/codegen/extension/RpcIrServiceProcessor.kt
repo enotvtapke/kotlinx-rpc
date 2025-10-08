@@ -14,7 +14,7 @@ internal class RpcIrServiceProcessor(
     private val logger: MessageCollector,
 ) {
     fun visitClass(declaration: IrClass, data: RpcIrContext) {
-        if (declaration.hasAnnotation(RpcClassId.rpcAnnotation)) {
+        if (declaration.rpc()) {
             processService(declaration, data)
         }
     }

@@ -5,6 +5,8 @@
 package kotlinx.rpc.codegen.extension
 
 import kotlinx.rpc.codegen.VersionSpecificApi
+import kotlinx.rpc.codegen.common.RpcClassId.remoteAnnotation
+import kotlinx.rpc.codegen.common.RpcClassId.rpcAnnotation
 import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.builders.declarations.IrFieldBuilder
 import org.jetbrains.kotlin.ir.builders.declarations.addDefaultGetter
@@ -20,6 +22,7 @@ import org.jetbrains.kotlin.ir.types.SimpleTypeNullability
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
 import org.jetbrains.kotlin.ir.util.dump
+import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.types.Variance
 import java.util.*
 
@@ -98,3 +101,6 @@ fun IrFactory.createExpressionBody(expression: IrExpression): IrExpressionBody =
     createExpressionBody(expression.startOffset, expression.endOffset, expression)
 
 inline fun <T> vsApi(ctx: RpcIrContext, body: VersionSpecificApi.() -> T): T = ctx.versionSpecificApi.body()
+
+fun IrDeclaration.rpc(): Boolean = hasAnnotation(rpcAnnotation) || hasAnnotation(remoteAnnotation)
+fun IrDeclaration.remote(): Boolean = hasAnnotation(remoteAnnotation)
