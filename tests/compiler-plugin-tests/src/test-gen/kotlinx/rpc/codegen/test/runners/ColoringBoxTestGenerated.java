@@ -40,6 +40,12 @@ public class ColoringBoxTestGenerated extends AbstractColoringBoxTest {
   }
 
   @Test
+  @TestMetadata("noDefaultConstructor.kt")
+  public void testNoDefaultConstructor() {
+    runTest("src/testData/coloringBox/noDefaultConstructor.kt");
+  }
+
+  @Test
   @TestMetadata("severalConstructors.kt")
   public void testSeveralConstructors() {
     runTest("src/testData/coloringBox/severalConstructors.kt");

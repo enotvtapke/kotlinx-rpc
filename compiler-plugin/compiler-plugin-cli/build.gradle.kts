@@ -16,6 +16,7 @@ kotlin {
 dependencies {
     compileOnly(libs.kotlin.compiler)
 
+    implementation(libs.noarg.plugin)
     implementation(projects.compilerPluginK2)
     implementation(projects.compilerPluginCommon)
     implementation(projects.compilerPluginBackend)
