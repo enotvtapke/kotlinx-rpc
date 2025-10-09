@@ -54,7 +54,6 @@ kotlin-compiler-test-framework = { module = "org.jetbrains.kotlin:kotlin-compile
 serialization-plugin = { module = "org.jetbrains.kotlin:kotlin-serialization-compiler-plugin", version.ref = "kotlin-compiler" }
 serialization-plugin-forIde = { module = "org.jetbrains.kotlin:kotlinx-serialization-compiler-plugin-for-ide", version.ref = "kotlin-compiler" }
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
-noarg-plugin = { module = "org.jetbrains.kotlin:kotlin-noarg-compiler-plugin", version.ref = "kotlin-compiler" }
 
 # serialization
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }

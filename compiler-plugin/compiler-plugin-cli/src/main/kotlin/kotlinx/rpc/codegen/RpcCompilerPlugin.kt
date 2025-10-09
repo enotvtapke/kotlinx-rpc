@@ -5,6 +5,7 @@
 package kotlinx.rpc.codegen
 
 import kotlinx.rpc.codegen.common.RpcClassId
+import kotlinx.rpc.codegen.noarg.NoArgIrGenerationExtension
 import kotlinx.rpc.codegen.extension.RpcIrExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
@@ -13,7 +14,6 @@ import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
-import org.jetbrains.kotlin.noarg.NoArgIrGenerationExtension
 
 @OptIn(ExperimentalCompilerApi::class)
 class RpcCommandLineProcessor : CommandLineProcessor {
