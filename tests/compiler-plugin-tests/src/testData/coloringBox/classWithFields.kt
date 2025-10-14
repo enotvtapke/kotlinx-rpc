@@ -7,6 +7,7 @@
 import kotlinx.coroutines.runBlocking
 import kotlinx.rpc.annotations.Remote
 import kotlinx.rpc.codegen.test.ServerClassContext
+import kotlinx.rpc.codegen.test.ClientNetworkContext
 
 @Remote(ServerClassContext::class)
 open class BoxService {
@@ -15,8 +16,10 @@ open class BoxService {
 }
 
 fun box(): String = runBlocking {
-    val service = BoxService()
-    val result = service.simple()
+    context(ClientNetworkContext) {
+        val service = BoxService()
+        val result = service.simple()
 
-    if (result == "call_42") "OK" else "Fail: $result"
+        if (result == "call_42") "OK" else "Fail: $result"
+    }
 }

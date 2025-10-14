@@ -7,7 +7,7 @@
 import kotlinx.coroutines.runBlocking
 import kotlinx.rpc.annotations.Remote
 import kotlinx.rpc.codegen.test.ServerClassContext
-import kotlinx.rpc.codegen.test.ServerNetworkContext
+import kotlinx.rpc.codegen.test.ClientNetworkContext
 
 data class TestData(val value: String)
 
@@ -19,7 +19,7 @@ open class BoxService {
 }
 
 fun box(): String = runBlocking {
-    with(ServerNetworkContext) {
+    context(ClientNetworkContext) {
         val box = BoxService()
 
         val test1 = box.test1(TestData("value"))

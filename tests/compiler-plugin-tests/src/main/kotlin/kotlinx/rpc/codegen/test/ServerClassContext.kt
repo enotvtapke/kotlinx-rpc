@@ -14,3 +14,4 @@ data object ServerClassContext: RemoteClassContext {
 }
 
 data object ServerNetworkContext: NetworkContext
+data object ClientNetworkContext: NetworkContext
