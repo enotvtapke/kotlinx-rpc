@@ -47,6 +47,13 @@ object RpcDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
             factory = FirRpcDiagnostics.TYPE_PARAMETERS_IN_RPC_INTERFACE,
             message = "Type parameters are not allowed in @Rpc interfaces.",
         )
+
+        map.put(
+            factory = FirRpcDiagnostics.INVALID_REMOTE_CALL_CONTEXT,
+            message = "No context argument for {0} found. " +
+                    "Remote calls are allowed only in the context with argument of type {0}.",
+            rendererA = FirDiagnosticRenderers.RENDER_TYPE,
+        )
     }
 }
 

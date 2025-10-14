@@ -7,6 +7,7 @@
 import kotlinx.coroutines.runBlocking
 import kotlinx.rpc.annotations.Remote
 import kotlinx.rpc.codegen.test.ServerClassContext
+import kotlinx.rpc.codegen.test.ServerNetworkContext
 
 data class TestData(val value: String)
 
@@ -18,9 +19,12 @@ open class BoxService {
 }
 
 fun box(): String = runBlocking {
-    val box = BoxService()
-    val test1 = box.test1(TestData("value"))
-    val test2 = box.test2(TestData("value"))
+    with(ServerNetworkContext) {
+        val box = BoxService()
 
-    if (test1 == "call_42" && test2 == "call_42") "OK" else "Fail: test1=$test1, test2=$test2"
+        val test1 = box.test1(TestData("value"))
+        val test2 = box.test2(TestData("value"))
+
+        if (test1 == "call_42" && test2 == "call_42") "OK" else "Fail: test1=$test1, test2=$test2"
+    }
 }

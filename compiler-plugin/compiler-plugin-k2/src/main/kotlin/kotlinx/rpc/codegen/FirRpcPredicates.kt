@@ -13,6 +13,10 @@ object FirRpcPredicates {
                 annotated(RpcClassId.remoteAnnotation.asSingleFqName())
     }
 
+    internal val remote = DeclarationPredicate.create {
+        annotated(RpcClassId.remoteAnnotation.asSingleFqName())
+    }
+
     internal val rpcMeta = DeclarationPredicate.create {
         metaAnnotated(RpcClassId.rpcAnnotation.asSingleFqName(), includeItself = true) or
                 metaAnnotated(RpcClassId.remoteAnnotation.asSingleFqName(), includeItself = true)

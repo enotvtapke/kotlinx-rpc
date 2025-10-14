@@ -20,6 +20,7 @@ class FirRpcExtensionRegistrar(private val configuration: CompilerConfiguration)
 
         +GFactory { FirRpcServiceGenerator(it, logger) }
         +CFactory { FirRpcAdditionalCheckers(it, configuration) }
+        +CFactory { FirRemoteAdditionalCheckers(it) }
         +SCFactory { FirSerializablePropertiesProvider(it) }
 
         registerDiagnosticRendererFactories()
