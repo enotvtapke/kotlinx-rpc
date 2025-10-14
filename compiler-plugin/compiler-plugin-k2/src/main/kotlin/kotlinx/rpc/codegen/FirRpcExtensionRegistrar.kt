@@ -13,12 +13,14 @@ import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrar
 import org.jetbrains.kotlin.fir.analysis.extensions.FirAdditionalCheckersExtension.Factory as CFactory
 import org.jetbrains.kotlin.fir.extensions.FirDeclarationGenerationExtension.Factory as GFactory
 import org.jetbrains.kotlin.fir.extensions.FirExtensionSessionComponent.Factory as SCFactory
+import org.jetbrains.kotlin.fir.extensions.FirStatusTransformerExtension.Factory as STFactory
 
 class FirRpcExtensionRegistrar(private val configuration: CompilerConfiguration) : FirExtensionRegistrar() {
     override fun ExtensionRegistrarContext.configurePlugin() {
         val logger = configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
 
         +GFactory { FirRpcServiceGenerator(it, logger) }
+        +STFactory { FirRemoteStatusTransformer(it) }
         +CFactory { FirRpcAdditionalCheckers(it, configuration) }
         +CFactory { FirRemoteAdditionalCheckers(it) }
         +SCFactory { FirSerializablePropertiesProvider(it) }

@@ -62,4 +62,10 @@ public class ColoringBoxTestGenerated extends AbstractColoringBoxTest {
   public void testSimple() {
     runTest("src/testData/coloringBox/simple.kt");
   }
+
+  @Test
+  @TestMetadata("simpleImplicitSuspendAndOpen.kt")
+  public void testSimpleImplicitSuspendAndOpen() {
+    runTest("src/testData/coloringBox/simpleImplicitSuspendAndOpen.kt");
+  }
 }
