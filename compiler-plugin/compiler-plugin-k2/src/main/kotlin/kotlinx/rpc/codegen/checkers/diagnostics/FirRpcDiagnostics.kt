@@ -30,6 +30,7 @@ object FirRpcDiagnostics : RpcKtDiagnosticsContainer() {
     val AD_HOC_POLYMORPHISM_IN_RPC_SERVICE by error2<KtElement, Int, Name>()
     val TYPE_PARAMETERS_IN_RPC_FUNCTION by error0<KtElement>(SourceElementPositioningStrategies.TYPE_PARAMETERS_LIST)
     val TYPE_PARAMETERS_IN_RPC_INTERFACE by error0<KtElement>(SourceElementPositioningStrategies.TYPE_PARAMETERS_LIST)
+    val PUBLIC_FIELD_IN_RPC_SERVICE by error0<KtElement>()
     val INVALID_REMOTE_CALL_CONTEXT by error1<KtElement, ConeKotlinType>()
 
     override fun getRendererFactoryVs(): BaseDiagnosticRendererFactory {
@@ -43,7 +44,6 @@ object FirRpcStrictModeDiagnostics : RpcKtDiagnosticsContainer() {
     val NESTED_STREAMING_IN_RPC_SERVICE by error0<KtElement>()
     val SUSPENDING_SERVER_STREAMING_IN_RPC_SERVICE by error0<KtElement>()
     val NON_TOP_LEVEL_SERVER_STREAMING_IN_RPC_SERVICE by error0<KtElement>()
-    val PUBLIC_FIELD_IN_RPC_SERVICE by error0<KtElement>()
 
     override fun getRendererFactoryVs(): BaseDiagnosticRendererFactory {
         return RpcStrictModeDiagnosticRendererFactory

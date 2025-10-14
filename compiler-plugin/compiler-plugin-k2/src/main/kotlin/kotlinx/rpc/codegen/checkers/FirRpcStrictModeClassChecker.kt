@@ -5,6 +5,7 @@
 package kotlinx.rpc.codegen.checkers
 
 import kotlinx.rpc.codegen.FirRpcPredicates
+import kotlinx.rpc.codegen.checkers.diagnostics.FirRpcDiagnostics.PUBLIC_FIELD_IN_RPC_SERVICE
 import kotlinx.rpc.codegen.checkers.diagnostics.FirRpcStrictModeDiagnostics
 import kotlinx.rpc.codegen.common.RpcClassId
 import kotlinx.rpc.codegen.vsApi
@@ -44,7 +45,7 @@ object FirRpcStrictModeClassChecker {
                 is FirPropertySymbol -> {
                     if (declaration.resolvedStatus.visibility in listOf(Visibilities.Public, Visibilities.Internal)) {
                         reporter.reportOn(
-                            declaration.source, FirRpcStrictModeDiagnostics.PUBLIC_FIELD_IN_RPC_SERVICE, context
+                            declaration.source, PUBLIC_FIELD_IN_RPC_SERVICE, context
                         )
                     }
                 }

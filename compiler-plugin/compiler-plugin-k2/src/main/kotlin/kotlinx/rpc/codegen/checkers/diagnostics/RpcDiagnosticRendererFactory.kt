@@ -54,6 +54,11 @@ object RpcDiagnosticRendererFactory : BaseDiagnosticRendererFactory() {
                     "Remote calls are allowed only in the context with argument of type {0}.",
             rendererA = FirDiagnosticRenderers.RENDER_TYPE,
         )
+
+        map.put(
+            factory = FirRpcDiagnostics.PUBLIC_FIELD_IN_RPC_SERVICE,
+            message = "Public or internal field declarations are not allowed in Remote classes.",
+        )
     }
 }
 
@@ -94,11 +99,6 @@ object RpcStrictModeDiagnosticRendererFactory : BaseDiagnosticRendererFactory() 
         map.put(
             factory = FirRpcStrictModeDiagnostics.NON_TOP_LEVEL_SERVER_STREAMING_IN_RPC_SERVICE,
             message = message("Not top-level server-side streaming"),
-        )
-
-        map.put(
-            factory = FirRpcStrictModeDiagnostics.PUBLIC_FIELD_IN_RPC_SERVICE,
-            message = message("Public or internal field declaration"),
         )
     }
 
