@@ -8,7 +8,8 @@ import kotlinx.rpc.codegen.common.RpcClassId.remoteAnnotation
 import kotlinx.rpc.codegen.common.RpcNames
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind.*
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
@@ -18,15 +19,20 @@ import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrTypeProjection
 import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.defaultType
-import org.jetbrains.kotlin.ir.util.constructors
-import org.jetbrains.kotlin.ir.util.functions
-import org.jetbrains.kotlin.ir.util.getAnnotation
-import org.jetbrains.kotlin.ir.util.getValueArgument
-import org.jetbrains.kotlin.ir.util.nestedClasses
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrTransformer
 import org.jetbrains.kotlin.name.Name
 
 internal class RpcIrServiceConstructorCallTransformer : IrTransformer<RpcIrContext>() {
+    private val containingDeclarations = mutableListOf<IrDeclaration>()
+
+    override fun visitDeclaration(declaration: IrDeclarationBase, data: RpcIrContext): IrStatement {
+        containingDeclarations.add(declaration)
+        return super.visitDeclaration(declaration, data).also {
+            containingDeclarations.removeLast()
+        }
+    }
+
     override fun visitClass(
         declaration: IrClass,
         data: RpcIrContext
@@ -61,6 +67,16 @@ internal class RpcIrServiceConstructorCallTransformer : IrTransformer<RpcIrConte
             ?: error("Annotation '${remoteAnnotation.asSingleFqName().asString()}' should have an argument named `context`")
         val contextObjectSymbol = ((contextObjectClassExpression.type as? IrSimpleType)?.arguments[0] as? IrTypeProjection)?.type?.classOrFail
             ?: error("Cannot get NetworkContext from type ${contextObjectClassExpression.type}")
+
+        val contextObjectContextSymbol =
+            contextObjectSymbol.owner.findDeclaration<IrProperty> { it.name == data.remoteClassContextContext.owner.name }?.getter?.returnType?.classOrFail
+                ?: error("Cannot find `context` property in remote class configuration")
+        val inLocalContext = containingDeclarations.filterIsInstance<IrFunction>().any {
+            it.parameters.filter { parameter -> parameter.kind in listOf(DispatchReceiver, ExtensionReceiver, Context) }.any {
+                parameter -> parameter.type.isSubtypeOfClass(contextObjectContextSymbol)
+            }
+        }
+        if (inLocalContext) return super.visitConstructorCall(expression, data)
 
         return vsApi(data) {
             val serviceStub = IrCallImpl(

@@ -121,6 +121,10 @@ class RpcIrContext(
         remoteClassContext.property("rpcClient")
     }
 
+    val remoteClassContextContext by lazy {
+        remoteClassContext.property("context")
+    }
+
     val kSerializer by lazy {
         getIrClassSymbol("kotlinx.serialization", "KSerializer")
     }

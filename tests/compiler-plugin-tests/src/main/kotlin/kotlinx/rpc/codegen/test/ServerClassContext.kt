@@ -9,7 +9,7 @@ import kotlinx.rpc.RemoteClassContext
 import kotlinx.rpc.RpcClient
 
 data object ServerClassContext: RemoteClassContext {
-    override val context: NetworkContext = ServerNetworkContext
+    override val context = ServerNetworkContext
     override val rpcClient: RpcClient = TestRpcClient
 }
 
