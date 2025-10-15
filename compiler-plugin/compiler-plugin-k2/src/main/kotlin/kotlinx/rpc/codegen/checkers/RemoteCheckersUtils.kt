@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.fir.types.isSubtypeOf
 context(context: CheckerContext)
 fun ConeKotlinType.inContext(): Boolean =
     context.containingDeclarations.filterIsInstance<FirCallableDeclaration>().any { declaration ->
-        declaration.contextParameters.map { it.returnTypeRef.coneType }
+        declaration.contextParameters.map { it.symbol.resolvedReturnTypeRef.coneType }
             .plusElement(declaration.receiverParameter?.typeRef?.coneType).any {
                 it?.isSubtypeOf(this, context.session) ?: false
             }

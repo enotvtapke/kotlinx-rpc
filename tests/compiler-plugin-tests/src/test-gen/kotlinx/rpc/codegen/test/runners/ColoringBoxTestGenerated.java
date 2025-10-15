@@ -52,6 +52,12 @@ public class ColoringBoxTestGenerated extends AbstractColoringBoxTest {
   }
 
   @Test
+  @TestMetadata("returnFlow.kt")
+  public void testReturnFlow() {
+    runTest("src/testData/coloringBox/returnFlow.kt");
+  }
+
+  @Test
   @TestMetadata("severalConstructors.kt")
   public void testSeveralConstructors() {
     runTest("src/testData/coloringBox/severalConstructors.kt");

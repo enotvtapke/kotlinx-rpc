@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.fir.extensions.FirStatusTransformerExtension
 import org.jetbrains.kotlin.fir.extensions.predicateBasedProvider
 import org.jetbrains.kotlin.fir.extensions.transform
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
+import org.jetbrains.kotlin.fir.types.FirImplicitTypeRef
 
 class FirRemoteStatusTransformer(session: FirSession) : FirStatusTransformerExtension(session) {
 
@@ -26,6 +27,7 @@ class FirRemoteStatusTransformer(session: FirSession) : FirStatusTransformerExte
         containingClass: FirClassLikeSymbol<*>?,
         isLocal: Boolean
     ): FirDeclarationStatus {
+        if (function.returnTypeRef is FirImplicitTypeRef) return status.transform { this[SUSPEND] = true }
         val returnType = vsApi { function.symbol.resolvedReturnTypeRef.coneTypeVS.toClassSymbolVS(session) }
             ?: return status
         if (returnType.classId == RpcClassId.flow) return status
