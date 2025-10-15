@@ -4,10 +4,10 @@
 
 package kotlinx.rpc.annotations
 
-import kotlinx.rpc.RemoteClassContext
+import kotlinx.rpc.RemoteConfig
 import kotlin.reflect.KClass
 
 @CheckedTypeAnnotation
 @Target(AnnotationTarget.CLASS, AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.TYPE_PARAMETER)
 //@Retention(AnnotationRetention.RUNTIME) // Runtime is the default retention, also see KT-41082
-public annotation class Remote(val context: KClass<out RemoteClassContext>)
+public annotation class Remote(val context: KClass<out RemoteConfig>)

@@ -63,17 +63,17 @@ internal class RpcIrServiceConstructorCallTransformer : IrTransformer<RpcIrConte
                 "Available stub functions: ${serviceStubClass.functions.joinToString { it.name.asString() }}")
 
         val remoteAnnotationCall = serviceClass.getAnnotation(remoteAnnotation.asSingleFqName())!!
-        val contextObjectClassExpression = remoteAnnotationCall.getValueArgument(Name.identifier("context"))
+        val remoteConfigClassExpression = remoteAnnotationCall.getValueArgument(Name.identifier("context"))
             ?: error("Annotation '${remoteAnnotation.asSingleFqName().asString()}' should have an argument named `context`")
-        val contextObjectSymbol = ((contextObjectClassExpression.type as? IrSimpleType)?.arguments[0] as? IrTypeProjection)?.type?.classOrFail
-            ?: error("Cannot get NetworkContext from type ${contextObjectClassExpression.type}")
+        val remoteConfigSymbol = ((remoteConfigClassExpression.type as? IrSimpleType)?.arguments[0] as? IrTypeProjection)?.type?.classOrFail
+            ?: error("Cannot get RemoteConfig from type ${remoteConfigClassExpression.type}")
 
-        val contextObjectContextSymbol =
-            contextObjectSymbol.owner.findDeclaration<IrProperty> { it.name == data.remoteClassContextContext.owner.name }?.getter?.returnType?.classOrFail
-                ?: error("Cannot find `context` property in remote class configuration")
+        val remoteConfigContextSymbol =
+            remoteConfigSymbol.owner.findDeclaration<IrProperty> { it.name == data.remoteConfigContext.owner.name }?.getter?.returnType?.classOrFail
+                ?: error("Cannot find `context` property in remote configuration")
         val inLocalContext = containingDeclarations.filterIsInstance<IrFunction>().any {
             it.parameters.filter { parameter -> parameter.kind in listOf(DispatchReceiver, ExtensionReceiver, Context) }.any {
-                parameter -> parameter.type.isSubtypeOfClass(contextObjectContextSymbol)
+                parameter -> parameter.type.isSubtypeOfClass(remoteConfigContextSymbol)
             }
         }
         if (inLocalContext) return super.visitConstructorCall(expression, data)
@@ -90,15 +90,15 @@ internal class RpcIrServiceConstructorCallTransformer : IrTransformer<RpcIrConte
                 val defaultRpcClient = IrCallImpl(
                     startOffset = expression.startOffset,
                     endOffset = expression.endOffset,
-                    type = data.remoteClassContextRpcClient.owner.getter!!.returnType,
-                    symbol = data.remoteClassContextRpcClient.owner.getter!!.symbol,
+                    type = data.remoteConfigRpcClient.owner.getter!!.returnType,
+                    symbol = data.remoteConfigRpcClient.owner.getter!!.symbol,
                     typeArgumentsCount = 0
                 ).apply {
                     dispatchReceiver = IrGetObjectValueImpl(
                         expression.startOffset,
                         expression.endOffset,
-                        contextObjectSymbol.defaultType,
-                        contextObjectSymbol
+                        remoteConfigSymbol.defaultType,
+                        remoteConfigSymbol
                     )
                 }
                 arguments[0] = defaultRpcClient

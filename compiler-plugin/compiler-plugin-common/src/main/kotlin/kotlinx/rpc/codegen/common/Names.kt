@@ -19,7 +19,7 @@ object RpcClassId {
     val flow = ClassId(FqName("kotlinx.coroutines.flow"), Name.identifier("Flow"))
     val sharedFlow = ClassId(FqName("kotlinx.coroutines.flow"), Name.identifier("SharedFlow"))
     val stateFlow = ClassId(FqName("kotlinx.coroutines.flow"), Name.identifier("StateFlow"))
-    val networkContext = ClassId(FqName("kotlinx.rpc"), Name.identifier("NetworkContext"))
+    val remoteContext = ClassId(FqName("kotlinx.rpc"), Name.identifier("RemoteContext"))
 }
 
 object RpcNames {

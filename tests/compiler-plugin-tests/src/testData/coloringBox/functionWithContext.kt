@@ -6,19 +6,19 @@
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.rpc.annotations.Remote
-import kotlinx.rpc.codegen.test.ServerClassContext
-import kotlinx.rpc.codegen.test.ClientNetworkContext
+import kotlinx.rpc.codegen.test.ServerConfig
+import kotlinx.rpc.codegen.test.ClientContext
 
 data class TestData(val value: String)
 
-@Remote(ServerClassContext::class)
+@Remote(ServerConfig::class)
 open class BoxService {
     open suspend fun test1(testData: TestData): String = ""
 
     open suspend fun test2(testData: TestData): String = ""
 }
 
-context(_: ClientNetworkContext)
+context(_: ClientContext)
 suspend fun clientFunction(box: BoxService): String {
     val test1 = box.test1(TestData("value"))
     val test2 = box.test2(TestData("value"))
@@ -26,10 +26,10 @@ suspend fun clientFunction(box: BoxService): String {
 }
 
 fun box(): String = runBlocking {
-    val box = context(ClientNetworkContext) {
+    val box = context(ClientContext) {
         BoxService()
     }
-    with(ClientNetworkContext) {
+    with(ClientContext) {
         clientFunction(box)
     }
 }

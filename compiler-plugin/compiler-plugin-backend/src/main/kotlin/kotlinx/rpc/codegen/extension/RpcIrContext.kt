@@ -113,16 +113,16 @@ class RpcIrContext(
         getRpcIrClassSymbol("RpcParameterDefault", "descriptor")
     }
 
-    val remoteClassContext by lazy {
-        getRpcIrClassSymbol("RemoteClassContext")
+    val remoteConfig by lazy {
+        getRpcIrClassSymbol("RemoteConfig")
     }
 
-    val remoteClassContextRpcClient by lazy {
-        remoteClassContext.property("rpcClient")
+    val remoteConfigRpcClient by lazy {
+        remoteConfig.property("rpcClient")
     }
 
-    val remoteClassContextContext by lazy {
-        remoteClassContext.property("context")
+    val remoteConfigContext by lazy {
+        remoteConfig.property("context")
     }
 
     val kSerializer by lazy {

@@ -6,12 +6,11 @@
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.rpc.annotations.Remote
-import kotlinx.rpc.codegen.test.ServerClassContext
-import kotlinx.rpc.codegen.test.ClientNetworkContext
+import kotlinx.rpc.codegen.test.ServerConfig
 
 data class TestData(val value: String)
 
-@Remote(ServerClassContext::class)
+@Remote(ServerConfig::class)
 open class BoxService {
     open suspend fun test1(testData: TestData): String = ""
 

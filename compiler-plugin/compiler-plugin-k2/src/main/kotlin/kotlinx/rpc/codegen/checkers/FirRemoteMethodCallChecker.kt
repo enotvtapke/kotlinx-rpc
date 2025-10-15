@@ -7,7 +7,7 @@ package kotlinx.rpc.codegen.checkers
 import kotlinx.rpc.codegen.FirRpcPredicates
 import kotlinx.rpc.codegen.FirVersionSpecificApiImpl.toClassSymbolVS
 import kotlinx.rpc.codegen.checkers.diagnostics.FirRpcDiagnostics.INVALID_REMOTE_CALL_CONTEXT
-import kotlinx.rpc.codegen.common.RpcClassId.networkContext
+import kotlinx.rpc.codegen.common.RpcClassId.remoteContext
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
@@ -26,7 +26,7 @@ object FirRemoteMethodCallChecker : FirFunctionCallChecker(MppCheckerKind.Common
             ?: error("${expression.dispatchReceiver!!.resolvedType} is not a class")
         if (!context.session.predicateBasedProvider.matches(FirRpcPredicates.remote, classSymbol)) return
 
-        val requiredContextType = networkContext.constructClassLikeType()
+        val requiredContextType = remoteContext.constructClassLikeType()
         if (!requiredContextType.inContext())
             reporter.reportOn(
                 source = expression.source,

@@ -6,17 +6,17 @@
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.rpc.annotations.Remote
-import kotlinx.rpc.codegen.test.ServerClassContext
-import kotlinx.rpc.codegen.test.ClientNetworkContext
+import kotlinx.rpc.codegen.test.ServerConfig
+import kotlinx.rpc.codegen.test.ClientContext
 
-@Remote(ServerClassContext::class)
+@Remote(ServerConfig::class)
 open class BoxService {
     private val field: String = "field"
     open suspend fun simple(): String = "str"
 }
 
 fun box(): String = runBlocking {
-    context(ClientNetworkContext) {
+    context(ClientContext) {
         val service = BoxService()
         val result = service.simple()
 
