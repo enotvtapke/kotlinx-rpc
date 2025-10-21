@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.util.dumpKotlinLike
-import org.jetbrains.kotlin.ir.util.hasDefaultValue
 
 /**
  * This class scans user declared RPC service
@@ -87,8 +86,10 @@ internal object RpcDeclarationScanner {
         return ServiceDeclaration(
             service = service,
             stubClass = stubClassNotNull,
-            methods = declarations.filterIsInstance<ServiceDeclaration.Method>(),
+            methods = declarations.filterIsInstance<ServiceDeclaration.Method>().filterNot(::isCloseMethod),
             constructors = declarations.filterIsInstance<ServiceDeclaration.Constructor>(),
+            closeMethod = declarations.filterIsInstance<ServiceDeclaration.Method>().find(::isCloseMethod) ?:
+                error("No `close` method present in ${service.name.asString()}")
         )
     }
 }
@@ -103,3 +104,5 @@ private fun unsupportedDeclaration(service: IrClass, declaration: IrDeclaration,
 
     return null
 }
+
+private fun isCloseMethod(method: ServiceDeclaration.Method): Boolean = method.name == "close" && method.arguments.isEmpty()

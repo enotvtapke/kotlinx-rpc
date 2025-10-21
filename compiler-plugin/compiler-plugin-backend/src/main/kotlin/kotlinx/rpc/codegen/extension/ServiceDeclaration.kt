@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.ir.util.kotlinFqName
 class ServiceDeclaration(
     val service: IrClass,
     val stubClass: IrClass,
+    val closeMethod: Method,
     val methods: List<Method>,
     val constructors: List<Constructor>,
 ) {

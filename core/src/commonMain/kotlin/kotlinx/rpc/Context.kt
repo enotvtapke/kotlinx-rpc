@@ -10,3 +10,7 @@ public interface RemoteConfig {
 }
 
 public interface RemoteContext
+
+public interface Remote {
+    public suspend fun close()
+}

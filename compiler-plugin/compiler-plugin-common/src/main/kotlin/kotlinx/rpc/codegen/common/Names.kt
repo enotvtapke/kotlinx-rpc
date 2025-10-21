@@ -20,8 +20,10 @@ object RpcClassId {
     val sharedFlow = ClassId(FqName("kotlinx.coroutines.flow"), Name.identifier("SharedFlow"))
     val stateFlow = ClassId(FqName("kotlinx.coroutines.flow"), Name.identifier("StateFlow"))
     val remoteContext = ClassId(FqName("kotlinx.rpc"), Name.identifier("RemoteContext"))
+    val remoteInterface = ClassId(FqName("kotlinx.rpc"), Name.identifier("Remote"))
 }
 
 object RpcNames {
     val SERVICE_STUB_NAME: Name = Name.identifier("\$rpcServiceStub")
+    val REMOTE_CLOSE_NAME: Name = Name.identifier("close")
 }

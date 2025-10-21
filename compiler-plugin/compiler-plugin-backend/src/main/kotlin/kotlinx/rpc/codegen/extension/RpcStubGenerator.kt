@@ -7,6 +7,7 @@ package kotlinx.rpc.codegen.extension
 import kotlinx.rpc.codegen.VersionSpecificApi
 import kotlinx.rpc.codegen.common.RpcClassId
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.backend.common.lower.irThrow
 import org.jetbrains.kotlin.backend.jvm.functionByName
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
@@ -55,9 +56,21 @@ internal class RpcStubGenerator(
     private var stubClassThisReceiver: IrValueParameter by Delegates.notNull()
 
     fun generate() {
+        generateCloseMethod()
+
         generateStubClass()
 
         addAssociatedObjectAnnotationIfPossible()
+    }
+
+    private fun generateCloseMethod() {
+        declaration.closeMethod.function.apply {
+            body = irBuilder(symbol).irBlockBody {
+                +irThrow(irCall(ctx.irBuiltIns.illegalArgumentExceptionSymbol).apply { // TODO maybe I should do nothing. Because user should not care about whether class instance is a stub or not
+                    arguments[0] = stringConst("Cannot close. Class instance is not a stub.")
+                })
+            }
+        }
     }
 
     private fun generateStubClass() {

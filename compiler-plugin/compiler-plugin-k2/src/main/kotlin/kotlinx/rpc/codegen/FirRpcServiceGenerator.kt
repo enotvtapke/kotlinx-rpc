@@ -5,14 +5,15 @@
 package kotlinx.rpc.codegen
 
 import kotlinx.rpc.codegen.common.RpcNames
+import kotlinx.rpc.codegen.common.RpcNames.REMOTE_CLOSE_NAME
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.declarations.utils.isInterface
 import org.jetbrains.kotlin.fir.extensions.*
 import org.jetbrains.kotlin.fir.plugin.*
 import org.jetbrains.kotlin.fir.symbols.impl.*
+import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
 
@@ -23,6 +24,35 @@ class FirRpcServiceGenerator(
 ) : FirDeclarationGenerationExtension(session) {
     override fun FirDeclarationPredicateRegistrar.registerPredicates() {
         register(FirRpcPredicates.rpc)
+        register(FirRpcPredicates.remote)
+    }
+
+    override fun getCallableNamesForClass(
+        classSymbol: FirClassSymbol<*>,
+        context: MemberGenerationContext
+    ): Set<Name> {
+        return if (session.predicateBasedProvider.matches(FirRpcPredicates.remote, classSymbol)) setOf(
+            REMOTE_CLOSE_NAME
+        ) else emptySet()
+    }
+
+    override fun generateFunctions(
+        callableId: CallableId,
+        context: MemberGenerationContext?
+    ): List<FirNamedFunctionSymbol> {
+        if (context == null) return emptyList()
+        val function = createMemberFunction(
+            context.owner,
+            FirRemoteClose,
+            callableId.callableName,
+            session.builtinTypes.unitType.coneType
+        ) {
+            status {
+                isOverride = true
+                isSuspend = true
+            }
+        }
+        return listOf(function.symbol)
     }
 
     /**
