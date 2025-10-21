@@ -125,6 +125,10 @@ public abstract class KrpcServer(
                             message.errorMessage
                 }
             }
+
+            is KrpcProtocolMessage.CloseService -> {
+                rpcServices.remove("${message.connectionId}$${message.serviceId}")
+            }
         }
     }
 
@@ -157,7 +161,7 @@ public abstract class KrpcServer(
         internalScope.launch(CoroutineName("krpc-server-service-$descriptor")) {
             connector.subscribeToServiceMessages(descriptor.fqName) { message ->
                 val rpcServerService = rpcServices.computeIfAbsent(
-                    "${message.connectionId}$${descriptor.fqName}$${message.serviceId}"
+                    "${message.connectionId}$${message.serviceId}"
                 ) {
                     createNewUninitializedServiceInstance(descriptor, plugins(message.connectionId!!))
                 }

@@ -230,6 +230,16 @@ public abstract class KrpcClient : RpcClient, KrpcEndpoint {
                     IllegalStateException("Server failed to process protocol message: ${message.failedMessage}")
                 )
             }
+
+            is KrpcProtocolMessage.CloseService -> {
+                logger.error {
+                    "Server [${message.connectionId}] send close service message with serviceId=${message.serviceId}"
+                }
+
+                serverSupportedPlugins.completeExceptionally(
+                    IllegalStateException("Server send close service message with serviceId=${message.serviceId}")
+                )
+            }
         }
     }
 
@@ -311,6 +321,10 @@ public abstract class KrpcClient : RpcClient, KrpcEndpoint {
                 requestChannels.remove(callId)
             }
         }
+    }
+
+    override suspend fun closeService(serviceId: Long) {
+        connector.sendMessage(KrpcProtocolMessage.CloseService(serviceId, connectionId))
     }
 
     private suspend fun <T> FlowCollector<T>.consumeAndEmitServerMessages(channel: Channel<Result<T>>) {

@@ -31,4 +31,11 @@ public interface RpcClient {
      * @return result of the call, for example, data from the server
      */
     public fun <T> callServerStreaming(call: RpcCall): Flow<T>
+
+    /**
+     * This method is used to close service and free all its resources occupied on the server. After method invocation
+     * every interaction with the service will result in the exception. Service cannot be reopened.
+     * @param serviceId an id of service which resources will be freed on the server
+     */
+    public suspend fun closeService(serviceId: Long)
 }

@@ -18,4 +18,8 @@ object TestRpcClient : RpcClient {
     override fun <T> callServerStreaming(call: RpcCall): Flow<T> {
         return flow { emit("stream_42" as T) }
     }
+
+    override suspend fun closeService(serviceId: Long) {
+        println("Closing service with id `$serviceId`")
+    }
 }

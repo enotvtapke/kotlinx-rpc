@@ -88,8 +88,7 @@ internal object RpcDeclarationScanner {
             stubClass = stubClassNotNull,
             methods = declarations.filterIsInstance<ServiceDeclaration.Method>().filterNot(::isCloseMethod),
             constructors = declarations.filterIsInstance<ServiceDeclaration.Constructor>(),
-            closeMethod = declarations.filterIsInstance<ServiceDeclaration.Method>().find(::isCloseMethod) ?:
-                error("No `close` method present in ${service.name.asString()}")
+            closeMethod = declarations.filterIsInstance<ServiceDeclaration.Method>().find(::isCloseMethod)
         )
     }
 }

@@ -160,6 +160,10 @@ class RpcIrContext(
             rpcClient.namedFunction("callServerStreaming")
         }
 
+        val rpcClientCloseService by lazy {
+            rpcClient.namedFunction("closeService")
+        }
+
         val rpcClientWithService by lazy {
             namedFunction("kotlinx.rpc", "withService") {
                 it.owner.parameters.count() == 1

@@ -28,6 +28,12 @@ public class ColoringBoxTestGenerated extends AbstractColoringBoxTest {
   }
 
   @Test
+  @TestMetadata("closeService.kt")
+  public void testCloseService() {
+    runTest("src/testData/coloringBox/closeService.kt");
+  }
+
+  @Test
   @TestMetadata("defaultValuesInConstructor.kt")
   public void testDefaultValuesInConstructor() {
     runTest("src/testData/coloringBox/defaultValuesInConstructor.kt");

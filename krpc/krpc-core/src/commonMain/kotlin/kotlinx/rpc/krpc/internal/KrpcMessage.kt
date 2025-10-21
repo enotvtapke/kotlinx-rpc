@@ -71,6 +71,14 @@ public sealed interface KrpcProtocolMessage : KrpcMessage {
         val failedMessage: KrpcMessage? = null,
         override val pluginParams: Map<KrpcPluginKey, String> = emptyMap(),
     ) : KrpcProtocolMessage
+
+    @InternalRpcApi
+    @Serializable
+    public data class CloseService(
+        val serviceId: Long,
+        override val connectionId: Long? = null,
+        override val pluginParams: Map<KrpcPluginKey, String> = emptyMap(),
+    ) : KrpcProtocolMessage
 }
 
 /**

@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.util.OperatorNameConventions
+import kotlin.error
 import kotlin.properties.Delegates
 
 private object Stub {
@@ -56,21 +57,22 @@ internal class RpcStubGenerator(
     private var stubClassThisReceiver: IrValueParameter by Delegates.notNull()
 
     fun generate() {
-        generateCloseMethod()
-
+        if (declaration.service.remote()) {
+            generateCloseMethod()
+        }
         generateStubClass()
 
         addAssociatedObjectAnnotationIfPossible()
     }
 
     private fun generateCloseMethod() {
-        declaration.closeMethod.function.apply {
+        declaration.closeMethod?.function?.apply {
             body = irBuilder(symbol).irBlockBody {
                 +irThrow(irCall(ctx.irBuiltIns.illegalArgumentExceptionSymbol).apply { // TODO maybe I should do nothing. Because user should not care about whether class instance is a stub or not
                     arguments[0] = stringConst("Cannot close. Class instance is not a stub.")
                 })
             }
-        }
+        } ?: error("No `close` method present in ${declaration.service.name.asString()}")
     }
 
     private fun generateStubClass() {
@@ -122,6 +124,10 @@ internal class RpcStubGenerator(
         generateProperties()
 
         generateMethods()
+
+        if (declaration.service.remote()) {
+            generateStubCloseMethod(declaration.closeMethod ?: error("No `close` method present in ${declaration.service.name.asString()}"))
+        }
 
         generateCompanionObject()
 
@@ -197,6 +203,49 @@ internal class RpcStubGenerator(
 
             addDefaultGetter(this@addConstructorProperty, ctx.irBuiltIns) {
                 visibility = propertyVisibility
+            }
+        }
+    }
+
+    private fun IrClass.generateStubCloseMethod(method: ServiceDeclaration.Method) {
+        addFunction {
+            name = Name.identifier(method.name)
+            visibility = method.function.visibility
+            returnType = method.function.returnType
+            modality = Modality.OPEN
+
+            isSuspend = method.function.isSuspend
+        }.apply {
+            val functionThisReceiver = vsApi {
+                stubClassThisReceiver.copyToVS(this@apply, origin = IrDeclarationOrigin.DEFINED)
+            }.also {
+                vsApi {
+                    dispatchReceiverParameterVS = it
+                }
+            }
+            overriddenSymbols = listOf(method.function.symbol)
+            body = irBuilder(symbol).irBlockBody {
+                +irCall(
+                    callee = ctx.functions.rpcClientCloseService.symbol,
+                    type = method.function.returnType,
+                ).apply {
+                    val dispatchReceiver = irCallProperty(
+                        clazz = stubClass,
+                        property = clientProperty,
+                        symbol = functionThisReceiver.symbol,
+                    )
+                    val stubId = irCallProperty(
+                        clazz = stubClass,
+                        property = stubIdProperty,
+                        symbol = functionThisReceiver.symbol,
+                    )
+                    arguments {
+                        values {
+                            +dispatchReceiver
+                            +stubId
+                        }
+                    }
+                }
             }
         }
     }
