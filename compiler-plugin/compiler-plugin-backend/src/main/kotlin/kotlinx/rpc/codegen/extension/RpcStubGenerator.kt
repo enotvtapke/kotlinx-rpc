@@ -67,11 +67,7 @@ internal class RpcStubGenerator(
 
     private fun generateCloseMethod() {
         declaration.closeMethod?.function?.apply {
-            body = irBuilder(symbol).irBlockBody {
-                +irThrow(irCall(ctx.irBuiltIns.illegalArgumentExceptionSymbol).apply { // TODO maybe I should do nothing. Because user should not care about whether class instance is a stub or not
-                    arguments[0] = stringConst("Cannot close. Class instance is not a stub.")
-                })
-            }
+            body = irBuilder(symbol).irBlockBody {}
         } ?: error("No `close` method present in ${declaration.service.name.asString()}")
     }
 

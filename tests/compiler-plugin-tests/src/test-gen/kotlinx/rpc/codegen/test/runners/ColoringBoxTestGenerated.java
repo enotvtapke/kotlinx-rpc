@@ -28,9 +28,15 @@ public class ColoringBoxTestGenerated extends AbstractColoringBoxTest {
   }
 
   @Test
-  @TestMetadata("closeService.kt")
-  public void testCloseService() {
-    runTest("src/testData/coloringBox/closeService.kt");
+  @TestMetadata("closeLocalService.kt")
+  public void testCloseLocalService() {
+    runTest("src/testData/coloringBox/closeLocalService.kt");
+  }
+
+  @Test
+  @TestMetadata("closeRemoteService.kt")
+  public void testCloseRemoteService() {
+    runTest("src/testData/coloringBox/closeRemoteService.kt");
   }
 
   @Test
