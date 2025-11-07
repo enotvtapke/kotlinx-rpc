@@ -40,6 +40,7 @@ private object Stub {
 private object Descriptor {
     const val CALLABLE_MAP = "callableMap"
     const val FQ_NAME = "fqName"
+    const val SERIALIZER_PROPERTY = "serializer"
     const val GET_CALLABLE = "getCallable"
     const val CREATE_INSTANCE = "createInstance"
 }
@@ -57,15 +58,15 @@ internal class RpcStubGenerator(
     private var stubClass: IrClass by Delegates.notNull()
     private var stubClassThisReceiver: IrValueParameter by Delegates.notNull()
     private var createInstance: IrFunction by Delegates.notNull()
+    private val serializerClass: IrClass? = if (declaration.service.remote()) declaration.service.declarations.find {
+        it is IrClass && it.name == RpcNames.SERVICE_SERIALIZER_NAME
+    } as IrClass?
+        ?: error("No ${RpcNames.SERVICE_SERIALIZER_NAME} class in remote class ${declaration.service.name.asString()}") else null
 
     fun generate() {
-        if (declaration.service.remote()) {
-            generateCloseMethod()
-        }
+        if (declaration.service.remote()) generateCloseMethod()
         generateStubClass()
-        if (declaration.service.remote()) {
-            declaration.service.generateSerializer()
-        }
+        if (declaration.service.remote()) generateSerializer()
         addAssociatedObjectAnnotationIfPossible()
     }
 
@@ -500,11 +501,8 @@ internal class RpcStubGenerator(
     private var stubCompanionObject: IrClassSymbol by Delegates.notNull()
     private var stubCompanionObjectThisReceiver: IrValueParameter by Delegates.notNull()
 
-    private fun IrClass.generateSerializer() {
-        val serializerClass = declarations.find {
-            it is IrClass && it.name == RpcNames.SERVICE_SERIALIZER_NAME
-        } as IrClass? ?: error("No ${RpcNames.SERVICE_SERIALIZER_NAME} class in remote class ${name.asString()}")
-        serializerClass.generateCompanionObjectConstructor()
+    private fun generateSerializer() {
+        serializerClass!!.generateCompanionObjectConstructor()
         val kSerializer = serializerClass.allSuperInterfaces().single { it.name == Name.identifier("KSerializer") }
         serializerClass.declarations.removeAll { declaration ->
             declaration.isFakeOverride &&
@@ -523,7 +521,9 @@ internal class RpcStubGenerator(
             }.apply {
                 val overriddenFunction = kSerializer.functions.single { it.name == RpcNames.KSERIALIZER_SERIALIZE_NAME }
                 overriddenSymbols = listOf(overriddenFunction.symbol)
-
+                vsApi {
+                    dispatchReceiverParameterVS = serializerClass.copyThisReceiver(this@apply)
+                }
                 val (encoderParam, valueParam) = overriddenFunction.valueParametersVS().map {
                     addValueParameter {
                         type = it.type
@@ -547,6 +547,9 @@ internal class RpcStubGenerator(
             }.apply {
                 val overriddenFunction = kSerializer.functions.single { it.name == RpcNames.KSERIALIZER_DESERIALIZE_NAME }
                 overriddenSymbols += overriddenFunction.symbol
+                vsApi {
+                    dispatchReceiverParameterVS = serializerClass.copyThisReceiver(this@apply)
+                }
                 val (decoderParam) = overriddenFunction.valueParametersVS().map {
                     addValueParameter {
                         type = it.type
@@ -614,6 +617,11 @@ internal class RpcStubGenerator(
                         }
                     })
                 }
+
+                addDefaultGetter(serializerClass, ctx.irBuiltIns) {
+                    visibility = DescriptorVisibilities.PUBLIC
+                    overriddenSymbols = listOf(ctx.properties.kSerializerDescriptor.owner.getterOrFail.symbol)
+                }
             }
         }
     }
@@ -659,6 +667,8 @@ internal class RpcStubGenerator(
     private fun IrClass.generateCompanionObjectContent() {
         generateFqName()
 
+        if (declaration.service.remote()) generateSerializerProperty()
+
         generateInvokators()
 
         generateCallableMapProperty()
@@ -695,6 +705,35 @@ internal class RpcStubGenerator(
             addDefaultGetter(this@generateFqName, ctx.irBuiltIns) {
                 visibility = DescriptorVisibilities.PUBLIC
                 overriddenSymbols = listOf(ctx.properties.rpcServiceDescriptorFqName.owner.getterOrFail.symbol)
+            }
+        }
+    }
+
+    private fun IrClass.generateSerializerProperty() {
+        addProperty {
+            name = Name.identifier(Descriptor.SERIALIZER_PROPERTY)
+            visibility = DescriptorVisibilities.PUBLIC
+        }.apply {
+            overriddenSymbols = listOf(ctx.properties.rpcServiceDescriptorSerializer)
+
+            addBackingFieldUtil {
+                visibility = DescriptorVisibilities.PRIVATE
+                type = serializerClass!!.defaultType.makeNullable()
+                vsApi { isFinalVS = true }
+            }.apply {
+                initializer = factory.createExpressionBody(
+                    IrGetObjectValueImpl(
+                        startOffset = UNDEFINED_OFFSET,
+                        endOffset = UNDEFINED_OFFSET,
+                        type = serializerClass!!.defaultType,
+                        symbol = serializerClass.symbol
+                    )
+                )
+            }
+
+            addDefaultGetter(this@generateSerializerProperty, ctx.irBuiltIns) {
+                visibility = DescriptorVisibilities.PUBLIC
+                overriddenSymbols = listOf(ctx.properties.rpcServiceDescriptorSerializer.owner.getterOrFail.symbol)
             }
         }
     }

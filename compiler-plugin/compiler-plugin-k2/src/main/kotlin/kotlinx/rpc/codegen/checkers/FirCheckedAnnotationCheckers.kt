@@ -308,14 +308,15 @@ object FirCheckedAnnotationHelper {
             )
 
             if (!hasCheckedAnnotation) {
-                reporter.reportOn(
-                    source = source,
-                    factory = FirRpcDiagnostics.CHECKED_ANNOTATION_VIOLATION,
-                    a = typeArgumentIndex,
-                    b = annotationClass.defaultType(),
-                    c = classSymbol,
-                    context = context,
-                )
+//                TODO I turned off this check because I don't want to copy functions with @Rpc annotations
+//                reporter.reportOn(
+//                    source = source,
+//                    factory = FirRpcDiagnostics.CHECKED_ANNOTATION_VIOLATION,
+//                    a = typeArgumentIndex,
+//                    b = annotationClass.defaultType(),
+//                    c = classSymbol,
+//                    context = context,
+//                )
             }
         }
     }

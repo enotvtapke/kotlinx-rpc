@@ -6,8 +6,12 @@ package kotlinx.rpc.descriptor
 
 import kotlinx.rpc.RpcClient
 import kotlinx.rpc.annotations.Rpc
-import kotlinx.rpc.internal.*
+import kotlinx.rpc.internal.internalRpcError
+import kotlinx.rpc.internal.internalServiceDescriptorOf
+import kotlinx.rpc.internal.rpcInternalKClass
+import kotlinx.rpc.internal.rpcInternalQualifiedClassNameOrNull
 import kotlinx.rpc.internal.utils.ExperimentalRpcApi
+import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 
@@ -41,6 +45,7 @@ public fun <@Rpc T : Any> serviceDescriptorOf(kClass: KClass<T>): RpcServiceDesc
 @ExperimentalRpcApi
 public interface RpcServiceDescriptor<@Rpc T : Any> {
     public val fqName: String
+    public val serializer: KSerializer<T>? // Not null in Remote classes. Null in RPC classes
 
     public fun getCallable(name: String): RpcCallable<T>?
 

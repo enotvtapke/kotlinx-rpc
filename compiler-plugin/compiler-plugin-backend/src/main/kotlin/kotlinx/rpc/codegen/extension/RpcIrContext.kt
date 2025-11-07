@@ -264,6 +264,14 @@ class RpcIrContext(
             rpcServiceDescriptor.namedProperty("fqName")
         }
 
+        val rpcServiceDescriptorSerializer by lazy {
+            rpcServiceDescriptor.namedProperty("serializer")
+        }
+
+        val kSerializerDescriptor by lazy {
+            kSerializer.namedProperty("descriptor")
+        }
+
         private fun IrClassSymbol.namedProperty(name: String): IrPropertySymbol {
             return owner.properties.single { it.name.asString() == name }.symbol
         }
