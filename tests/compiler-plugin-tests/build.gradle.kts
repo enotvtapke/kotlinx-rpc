@@ -101,6 +101,7 @@ dependencies {
 
     testDataClasspath(projects.utils)
     testDataClasspath(libs.coroutines.core)
+    testDataClasspath(libs.serialization.core)
 }
 
 val updateTestData = (project.findProperty("kotlin.test.update.test.data") as? String) ?: "false"

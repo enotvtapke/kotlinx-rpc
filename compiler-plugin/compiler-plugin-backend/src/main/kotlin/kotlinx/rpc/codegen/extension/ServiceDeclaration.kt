@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.ir.util.kotlinFqName
 class ServiceDeclaration(
     val service: IrClass,
     val stubClass: IrClass,
-    val closeMethod: Method?, // TODO This should be nullable for Remote service. It is nullable only for RPC services
+    val closeMethod: Method?, // TODO This should not be nullable for Remote service. It is nullable only for RPC services
     val methods: List<Method>,
     val constructors: List<Constructor>,
 ) {

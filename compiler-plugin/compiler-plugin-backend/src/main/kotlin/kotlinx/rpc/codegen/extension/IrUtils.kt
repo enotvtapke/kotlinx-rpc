@@ -14,15 +14,21 @@ import org.jetbrains.kotlin.ir.builders.declarations.buildField
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
+import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
+import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeArgument
 import org.jetbrains.kotlin.ir.types.IrTypeProjection
 import org.jetbrains.kotlin.ir.types.SimpleTypeNullability
+import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
 import org.jetbrains.kotlin.ir.util.dump
+import org.jetbrains.kotlin.ir.util.getAnnotation
+import org.jetbrains.kotlin.ir.util.getValueArgument
 import org.jetbrains.kotlin.ir.util.hasAnnotation
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.Variance
 import java.util.*
 
@@ -104,3 +110,12 @@ inline fun <T> vsApi(ctx: RpcIrContext, body: VersionSpecificApi.() -> T): T = c
 
 fun IrDeclaration.rpc(): Boolean = hasAnnotation(rpcAnnotation) || hasAnnotation(remoteAnnotation)
 fun IrDeclaration.remote(): Boolean = hasAnnotation(remoteAnnotation)
+
+fun IrClass.remoteConfigObject(): IrClassSymbol {
+    val remoteAnnotationCall = getAnnotation(remoteAnnotation.asSingleFqName())!!
+    val remoteConfigClassExpression = remoteAnnotationCall.getValueArgument(Name.identifier("context"))
+        ?: error("Annotation '${remoteAnnotation.asSingleFqName().asString()}' should have an argument named `context`")
+    val remoteConfigSymbol = ((remoteConfigClassExpression.type as? IrSimpleType)?.arguments[0] as? IrTypeProjection)?.type?.classOrFail
+        ?: error("Cannot get RemoteConfig from type ${remoteConfigClassExpression.type}")
+    return remoteConfigSymbol
+}

@@ -5,10 +5,12 @@
 package kotlinx.rpc.codegen.extension
 
 import kotlinx.rpc.codegen.VersionSpecificApi
+import kotlinx.rpc.codegen.VersionSpecificApiImpl.valueParametersVS
 import kotlinx.rpc.codegen.common.RpcClassId
+import kotlinx.rpc.codegen.common.RpcNames
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.backend.common.lower.irThrow
 import org.jetbrains.kotlin.backend.jvm.functionByName
+import org.jetbrains.kotlin.backend.wasm.ir2wasm.allSuperInterfaces
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.DescriptorVisibility
@@ -28,7 +30,6 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.util.OperatorNameConventions
-import kotlin.error
 import kotlin.properties.Delegates
 
 private object Stub {
@@ -55,13 +56,16 @@ internal class RpcStubGenerator(
 
     private var stubClass: IrClass by Delegates.notNull()
     private var stubClassThisReceiver: IrValueParameter by Delegates.notNull()
+    private var createInstance: IrFunction by Delegates.notNull()
 
     fun generate() {
         if (declaration.service.remote()) {
             generateCloseMethod()
         }
         generateStubClass()
-
+        if (declaration.service.remote()) {
+            declaration.service.generateSerializer()
+        }
         addAssociatedObjectAnnotationIfPossible()
     }
 
@@ -495,6 +499,124 @@ internal class RpcStubGenerator(
 
     private var stubCompanionObject: IrClassSymbol by Delegates.notNull()
     private var stubCompanionObjectThisReceiver: IrValueParameter by Delegates.notNull()
+
+    private fun IrClass.generateSerializer() {
+        val serializerClass = declarations.find {
+            it is IrClass && it.name == RpcNames.SERVICE_SERIALIZER_NAME
+        } as IrClass? ?: error("No ${RpcNames.SERVICE_SERIALIZER_NAME} class in remote class ${name.asString()}")
+        serializerClass.generateCompanionObjectConstructor()
+        val kSerializer = serializerClass.allSuperInterfaces().single { it.name == Name.identifier("KSerializer") }
+        serializerClass.declarations.removeAll { declaration ->
+            declaration.isFakeOverride &&
+                    declaration.origin == IrDeclarationOrigin.FAKE_OVERRIDE &&
+                    declaration.getNameWithAssert() in listOf(
+                RpcNames.KSERIALIZER_SERIALIZE_NAME,
+                RpcNames.KSERIALIZER_DESERIALIZE_NAME,
+                RpcNames.KSERIALIZER_DESCRIPTOR_NAME
+            )
+        }
+
+        serializerClass.apply {
+            addFunction {
+                name = RpcNames.KSERIALIZER_SERIALIZE_NAME
+                returnType = ctx.irBuiltIns.unitType
+            }.apply {
+                val overriddenFunction = kSerializer.functions.single { it.name == RpcNames.KSERIALIZER_SERIALIZE_NAME }
+                overriddenSymbols = listOf(overriddenFunction.symbol)
+
+                val (encoderParam, valueParam) = overriddenFunction.valueParametersVS().map {
+                    addValueParameter {
+                        type = it.type
+                        name = it.name
+                    }
+                }
+                body = irBuilder(symbol).irBlockBody {
+                    +irCall(
+                        callee = ctx.functions.encoderEncodeLong.symbol,
+                        type = ctx.functions.encoderEncodeLong.returnType,
+                    ).apply {
+                        arguments[0] = irGet(encoderParam)
+                        arguments[1] = irCallProperty(irGet(valueParam), stubIdProperty)
+                    }
+                }
+            }
+
+            addFunction {
+                name = RpcNames.KSERIALIZER_DESERIALIZE_NAME
+                returnType = declaration.stubClass.defaultType
+            }.apply {
+                val overriddenFunction = kSerializer.functions.single { it.name == RpcNames.KSERIALIZER_DESERIALIZE_NAME }
+                overriddenSymbols += overriddenFunction.symbol
+                val (decoderParam) = overriddenFunction.valueParametersVS().map {
+                    addValueParameter {
+                        type = it.type
+                        name = it.name
+                    }
+                }
+                body = irBuilder(symbol).irBlockBody {
+                    val remoteConfigSymbol = declaration.service.remoteConfigObject()
+                    +irReturn(
+                        irCall(
+                            callee = createInstance.symbol,
+                            type = createInstance.returnType,
+                        ).apply {
+                            arguments {
+                                values {
+                                    +irGetDescriptor()
+                                    +irCall(
+                                        callee = ctx.functions.decoderDecodeLong.symbol,
+                                        type = ctx.functions.decoderDecodeLong.returnType,
+                                    ).apply {
+                                        arguments[0] = irGet(decoderParam)
+                                    }
+                                    +irCall(
+                                        type = ctx.remoteConfigRpcClient.owner.getter!!.returnType,
+                                        callee = ctx.remoteConfigRpcClient.owner.getter!!.symbol,
+                                    ).apply {
+                                        dispatchReceiver = irGetObjectValue(
+                                            remoteConfigSymbol.defaultType,
+                                            remoteConfigSymbol
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+
+            addProperty {
+                name = RpcNames.KSERIALIZER_DESCRIPTOR_NAME
+            }.apply {
+                addBackingFieldUtil {
+                    type = ctx.serialDescriptor.defaultType
+                }.apply {
+                    initializer = factory.createExpressionBody(vsApi {
+                        IrCallImplVS(
+                            startOffset = startOffset,
+                            endOffset = endOffset,
+                            type = ctx.serialDescriptor.defaultType,
+                            symbol = ctx.functions.primitiveSerialDescriptor,
+                            typeArgumentsCount = 0,
+                            valueArgumentsCount = 2,
+                        ).apply {
+                            arguments {
+                                values {
+                                    +stringConst("remoteClassStubAsLongSerializer")
+                                    +IrGetObjectValueImpl(
+                                        startOffset = startOffset,
+                                        endOffset = endOffset,
+                                        type = ctx.primitiveKindLong.defaultType,
+                                        symbol = ctx.primitiveKindLong
+                                    )
+                                }
+                            }
+                        }
+                    })
+                }
+            }
+        }
+    }
 
     /**
      * Companion object for the RPC service stub.
@@ -1016,7 +1138,7 @@ internal class RpcStubGenerator(
      * ```
      */
     private fun IrClass.generateCreateInstanceFunction() {
-        addFunction {
+        createInstance = addFunction {
             name = Name.identifier(Descriptor.CREATE_INSTANCE)
             visibility = DescriptorVisibilities.PUBLIC
             modality = Modality.OPEN

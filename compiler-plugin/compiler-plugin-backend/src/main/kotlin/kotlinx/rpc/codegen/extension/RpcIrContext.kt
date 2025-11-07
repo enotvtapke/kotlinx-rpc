@@ -57,6 +57,22 @@ class RpcIrContext(
         getIrClassSymbol("kotlin", "Pair")
     }
 
+    val encoder by lazy {
+        getIrClassSymbol("kotlinx.serialization.encoding", "Encoder")
+    }
+
+    val decoder by lazy {
+        getIrClassSymbol("kotlinx.serialization.encoding", "Decoder")
+    }
+
+    val serialDescriptor by lazy {
+        getIrClassSymbol("kotlinx.serialization.descriptors", "SerialDescriptor")
+    }
+
+    val primitiveKindLong by lazy {
+        getIrClassSymbol("kotlinx.serialization.descriptors", "PrimitiveKind.LONG")
+    }
+
     val rpcClient by lazy {
         getRpcIrClassSymbol("RpcClient")
     }
@@ -162,6 +178,18 @@ class RpcIrContext(
 
         val rpcClientCloseService by lazy {
             rpcClient.namedFunction("closeService")
+        }
+
+        val encoderEncodeLong by lazy {
+            encoder.namedFunction("encodeLong")
+        }
+
+        val decoderDecodeLong by lazy {
+            decoder.namedFunction("decodeLong")
+        }
+
+        val primitiveSerialDescriptor by lazy {
+            namedFunction("kotlinx.serialization.descriptors", "PrimitiveSerialDescriptor")
         }
 
         val rpcClientWithService by lazy {

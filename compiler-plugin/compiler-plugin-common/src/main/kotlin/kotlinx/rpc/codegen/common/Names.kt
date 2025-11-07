@@ -14,6 +14,7 @@ object RpcClassId {
     val checkedTypeAnnotation = ClassId(FqName("kotlinx.rpc.annotations"), Name.identifier("CheckedTypeAnnotation"))
 
     val serializableAnnotation = ClassId(FqName("kotlinx.serialization"), Name.identifier("Serializable"))
+    val kSerializer = ClassId(FqName("kotlinx.serialization"), Name.identifier("KSerializer"))
     val serializationTransient = ClassId.topLevel(FqName("kotlinx.serialization.Transient"))
 
     val flow = ClassId(FqName("kotlinx.coroutines.flow"), Name.identifier("Flow"))
@@ -25,5 +26,9 @@ object RpcClassId {
 
 object RpcNames {
     val SERVICE_STUB_NAME: Name = Name.identifier("\$rpcServiceStub")
+    val SERVICE_SERIALIZER_NAME: Name = Name.identifier("\$rpcServiceSerializer")
     val REMOTE_CLOSE_NAME: Name = Name.identifier("close")
+    val KSERIALIZER_SERIALIZE_NAME: Name = Name.identifier("serialize")
+    val KSERIALIZER_DESERIALIZE_NAME: Name = Name.identifier("deserialize")
+    val KSERIALIZER_DESCRIPTOR_NAME: Name = Name.identifier("descriptor")
 }

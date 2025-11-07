@@ -4,7 +4,6 @@
 
 package kotlinx.rpc.codegen.extension
 
-import kotlinx.rpc.codegen.common.RpcClassId.remoteAnnotation
 import kotlinx.rpc.codegen.common.RpcNames
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
@@ -15,8 +14,6 @@ import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
-import org.jetbrains.kotlin.ir.types.IrSimpleType
-import org.jetbrains.kotlin.ir.types.IrTypeProjection
 import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.*
@@ -62,11 +59,7 @@ internal class RpcIrServiceConstructorCallTransformer : IrTransformer<RpcIrConte
         } ?: error("No constructor with name ${constructorName.asString()} is present in stub for rpc service ${serviceClass.name.asString()}. " +
                 "Available stub functions: ${serviceStubClass.functions.joinToString { it.name.asString() }}")
 
-        val remoteAnnotationCall = serviceClass.getAnnotation(remoteAnnotation.asSingleFqName())!!
-        val remoteConfigClassExpression = remoteAnnotationCall.getValueArgument(Name.identifier("context"))
-            ?: error("Annotation '${remoteAnnotation.asSingleFqName().asString()}' should have an argument named `context`")
-        val remoteConfigSymbol = ((remoteConfigClassExpression.type as? IrSimpleType)?.arguments[0] as? IrTypeProjection)?.type?.classOrFail
-            ?: error("Cannot get RemoteConfig from type ${remoteConfigClassExpression.type}")
+        val remoteConfigSymbol = serviceClass.remoteConfigObject()
 
         val remoteConfigContextSymbol =
             remoteConfigSymbol.owner.findDeclaration<IrProperty> { it.name == data.remoteConfigContext.owner.name }?.getter?.returnType?.classOrFail

@@ -4,15 +4,23 @@
 
 package kotlinx.rpc.codegen
 
+import kotlinx.rpc.codegen.common.RpcClassId
 import kotlinx.rpc.codegen.common.RpcNames
 import kotlinx.rpc.codegen.common.RpcNames.REMOTE_CLOSE_NAME
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.extensions.*
-import org.jetbrains.kotlin.fir.plugin.*
-import org.jetbrains.kotlin.fir.symbols.impl.*
+import org.jetbrains.kotlin.fir.plugin.createCompanionObject
+import org.jetbrains.kotlin.fir.plugin.createMemberFunction
+import org.jetbrains.kotlin.fir.plugin.createNestedClass
+import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
+import org.jetbrains.kotlin.fir.types.constructClassLikeType
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
@@ -82,7 +90,11 @@ class FirRpcServiceGenerator(
             }
 
             session.predicateBasedProvider.matches(FirRpcPredicates.rpc, classSymbol) -> {
-                setOf(RpcNames.SERVICE_STUB_NAME)
+                if (session.predicateBasedProvider.matches(FirRpcPredicates.remote, classSymbol)) {
+                    setOf(RpcNames.SERVICE_STUB_NAME, RpcNames.SERVICE_SERIALIZER_NAME)
+                } else {
+                    setOf(RpcNames.SERVICE_STUB_NAME)
+                }
             }
 
             else -> {
@@ -110,6 +122,10 @@ class FirRpcServiceGenerator(
                 generateRpcServiceStubClass(owner)
             }
 
+            name == RpcNames.SERVICE_SERIALIZER_NAME -> {
+                generateSerializerObjectForRpcService(owner)
+            }
+
             else -> {
                 error("Cannot run generation for ${owner.classId.createNestedClassId(name).asSingleFqName()}")
             }
@@ -120,6 +136,17 @@ class FirRpcServiceGenerator(
         owner: FirClassSymbol<*>,
     ): FirClassLikeSymbol<*> {
         return createCompanionObject(owner, FirRpcServiceStubCompanionObject).symbol
+    }
+
+    private fun generateSerializerObjectForRpcService(
+        owner: FirClassSymbol<*>,
+    ): FirClassLikeSymbol<*> {
+        return createNestedClass(owner, RpcNames.SERVICE_SERIALIZER_NAME, FirRpcServiceSerializerObject, ClassKind.OBJECT) {
+            visibility = Visibilities.Private
+            modality = Modality.FINAL
+            val typeArguments = arrayOf(owner.classId.constructClassLikeType())
+            superType(RpcClassId.kSerializer.constructClassLikeType(typeArguments))
+        }.symbol
     }
 
     /**

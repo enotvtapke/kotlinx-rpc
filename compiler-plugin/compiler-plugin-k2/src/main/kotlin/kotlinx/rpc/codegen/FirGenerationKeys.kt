@@ -26,6 +26,12 @@ internal object FirRpcServiceStubCompanionObject : GeneratedDeclarationKey() {
     }
 }
 
+internal object FirRpcServiceSerializerObject : GeneratedDeclarationKey() {
+    override fun toString(): String {
+        return "FirRpcServiceSerializerObject"
+    }
+}
+
 internal object FirRemoteClose : GeneratedDeclarationKey() {
     override fun toString(): String {
         return "FirRemoteClose"
