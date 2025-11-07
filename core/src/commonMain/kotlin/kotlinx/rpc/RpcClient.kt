@@ -38,4 +38,9 @@ public interface RpcClient {
      * @param serviceId an id of service which resources will be freed on the server
      */
     public suspend fun closeService(serviceId: Long)
+
+    /**
+     * Gets connection id of this rpc client. Initializes the client if it is uninitialized.
+     */
+    public suspend fun getConnectionId(): Long
 }

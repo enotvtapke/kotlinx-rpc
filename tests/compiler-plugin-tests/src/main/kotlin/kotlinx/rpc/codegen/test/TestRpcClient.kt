@@ -22,4 +22,8 @@ object TestRpcClient : RpcClient {
     override suspend fun closeService(serviceId: Long) {
         println("Closing service with id `$serviceId`")
     }
+
+    override suspend fun getConnectionId(): Long {
+        return 0
+    }
 }

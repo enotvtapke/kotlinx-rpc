@@ -19,7 +19,7 @@ import kotlin.reflect.KType
  *
  * @see kotlinx.rpc.annotations.CheckedTypeAnnotation
  */
-public inline fun <@Rpc reified T : Any> RpcClient.withService(): T {
+public suspend inline fun <@Rpc reified T : Any> RpcClient.withService(): T {
     return withService(T::class)
 }
 
@@ -32,7 +32,7 @@ public inline fun <@Rpc reified T : Any> RpcClient.withService(): T {
  *
  * @see kotlinx.rpc.annotations.CheckedTypeAnnotation
  */
-public fun <@Rpc T : Any> RpcClient.withService(serviceKType: KType): T {
+public suspend  fun <@Rpc T : Any> RpcClient.withService(serviceKType: KType): T {
     return withService(serviceKType.rpcInternalKClass())
 }
 
@@ -51,10 +51,11 @@ private val SERVICE_ID = atomic(0L)
  *
  * @see kotlinx.rpc.annotations.CheckedTypeAnnotation
  */
-public fun <@Rpc T : Any> RpcClient.withService(serviceKClass: KClass<T>): T {
+public suspend fun <@Rpc T : Any> RpcClient.withService(serviceKClass: KClass<T>): T {
     val descriptor = serviceDescriptorOf(serviceKClass)
 
     val id = SERVICE_ID.incrementAndGet()
+    val connectionId = getConnectionId()
 
-    return descriptor.createInstance(id, this)
+    return descriptor.createInstance((connectionId shl 31) + id, this)
 }

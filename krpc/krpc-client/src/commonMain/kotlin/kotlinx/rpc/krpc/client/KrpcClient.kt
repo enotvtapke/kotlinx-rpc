@@ -327,6 +327,11 @@ public abstract class KrpcClient : RpcClient, KrpcEndpoint {
         connector.sendMessage(KrpcProtocolMessage.CloseService(serviceId, connectionId))
     }
 
+    override suspend fun getConnectionId(): Long {
+        initializeAndAwaitHandshakeCompletion()
+        return connectionId
+    }
+
     private suspend fun <T> FlowCollector<T>.consumeAndEmitServerMessages(channel: Channel<Result<T>>) {
         while (true) {
             val element = channel.receiveCatching()

@@ -92,7 +92,7 @@ abstract class KrpcTransportTestBase {
     private lateinit var server: KrpcTestServiceBackend
 
     @BeforeTest
-    fun start() {
+    suspend fun start() {
         backend = KrpcTestServer(serverConfig, serverTransport)
         backend.registerService<KrpcTestService> {
             KrpcTestServiceBackend().also {
