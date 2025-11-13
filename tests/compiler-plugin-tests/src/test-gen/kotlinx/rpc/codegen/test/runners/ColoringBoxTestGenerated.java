@@ -70,6 +70,12 @@ public class ColoringBoxTestGenerated extends AbstractColoringBoxTest {
   }
 
   @Test
+  @TestMetadata("serialize.kt")
+  public void testSerialize() {
+    runTest("src/testData/coloringBox/serialize.kt");
+  }
+
+  @Test
   @TestMetadata("severalConstructors.kt")
   public void testSeveralConstructors() {
     runTest("src/testData/coloringBox/severalConstructors.kt");

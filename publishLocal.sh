@@ -6,6 +6,6 @@
 
 set -euxo pipefail
 
-./gradlew publishAllPublicationsToBuildRepoRepository --no-scan
-./gradlew -p compiler-plugin publishAllPublicationsToBuildRepoRepository --no-configuration-cache --no-scan
-./gradlew -p gradle-plugin publishAllPublicationsToBuildRepoRepository --no-configuration-cache --no-scan
+./gradlew publishAllPublicationsToBuildRepoRepository
+./gradlew -p compiler-plugin publishAllPublicationsToBuildRepoRepository --no-configuration-cache
+./gradlew -p gradle-plugin publishAllPublicationsToBuildRepoRepository --no-configuration-cache

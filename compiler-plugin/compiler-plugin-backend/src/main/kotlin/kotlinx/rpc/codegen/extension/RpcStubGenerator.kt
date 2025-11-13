@@ -531,12 +531,27 @@ internal class RpcStubGenerator(
                     }
                 }
                 body = irBuilder(symbol).irBlockBody {
+                    +irWhen(ctx.irBuiltIns.unitType, buildList {
+                        add(irBranch(
+                            irIs(irGet(valueParam), declaration.stubClass.defaultType),
+                            irReturn(irCall(
+                                callee = ctx.functions.encoderEncodeLong.symbol,
+                                type = ctx.functions.encoderEncodeLong.returnType,
+                            ).apply {
+                                arguments[0] = irGet(encoderParam)
+                                arguments[1] = irCallProperty(irGet(valueParam), stubIdProperty)
+                            })
+                        ))
+                    })
                     +irCall(
                         callee = ctx.functions.encoderEncodeLong.symbol,
                         type = ctx.functions.encoderEncodeLong.returnType,
                     ).apply {
                         arguments[0] = irGet(encoderParam)
-                        arguments[1] = irCallProperty(irGet(valueParam), stubIdProperty)
+                        arguments[1] = irCall(ctx.functions.registerRemoteService).apply {
+                            typeArguments[0] = declaration.service.defaultType
+                            arguments[0] = irGet(valueParam)
+                        }
                     }
                 }
             }
@@ -1560,6 +1575,10 @@ internal class RpcStubGenerator(
 
     private inline fun IrMemberAccessExpression<*>.arguments(body: IrMemberAccessExpressionBuilder.() -> Unit) {
         return arguments(ctx.versionSpecificApi, body)
+    }
+
+    private fun IrBuilder.println(e: IrExpression): IrCall {
+        return irCall(ctx.functions.println).apply { arguments { values { +e } } }
     }
 
     fun IrBuilderWithScope.irSafeAs(argument: IrExpression, type: IrType) =

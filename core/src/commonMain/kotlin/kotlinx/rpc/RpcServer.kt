@@ -27,6 +27,7 @@ public interface RpcServer {
     public fun <@Rpc Service : Any> registerService(
         serviceKClass: KClass<Service>,
         serviceFactory: () -> Service,
+        serviceId: String? = null,
     )
 
     /**

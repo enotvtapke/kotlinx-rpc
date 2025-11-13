@@ -4,6 +4,8 @@
 
 import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import util.other.otherwise
+import util.whenForIde
 
 plugins {
     java
@@ -71,15 +73,16 @@ dependencies {
     testRuntimeOnly(libs.kotlin.annotations.jvm)
 
     // uncomment when serialization is needed for testing again
-//    whenForIde {
-//        testImplementation(libs.serialization.plugin.forIde) {
-//            isTransitive = false
-//        }
-//    } otherwise {
-//        testImplementation(libs.serialization.plugin)
-//    }
-//
-//    testDataClasspath(libs.serialization.core)
+    whenForIde {
+        testImplementation(libs.serialization.plugin.forIde) {
+            isTransitive = false
+        }
+    } otherwise {
+        testImplementation(libs.serialization.plugin)
+    }
+
+    testDataClasspath(libs.serialization.core)
+    testDataClasspath(libs.serialization.json)
 
     testImplementation(libs.compiler.plugin.common)
     testImplementation(libs.compiler.plugin.backend)

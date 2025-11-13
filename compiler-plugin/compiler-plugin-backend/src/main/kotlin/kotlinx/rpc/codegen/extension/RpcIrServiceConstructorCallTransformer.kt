@@ -7,9 +7,12 @@ package kotlinx.rpc.codegen.extension
 import kotlinx.rpc.codegen.common.RpcNames
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind.*
+import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
+import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
@@ -46,18 +49,6 @@ internal class RpcIrServiceConstructorCallTransformer : IrTransformer<RpcIrConte
         if (!serviceClass.remote()) {
             return super.visitConstructorCall(expression, data)
         }
-        val serviceStubClass = serviceClass.nestedClasses.singleOrNull { it.name == RpcNames.SERVICE_STUB_NAME } ?:
-            error("No stub class is present in rpc service ${serviceClass.name.asString()}")
-        val constructorName = Name.identifier(
-            rpcConstructorName(
-                serviceClass.constructors.indexOfFirst { it.symbol == expression.symbol }.takeIf { it != -1 }
-                    ?: error("No constructor corresponding to constructor call is present in rpc service ${serviceClass.name.asString()}")
-            )
-        )
-        val rpcConstructorFunction = serviceStubClass.functions.singleOrNull { function ->
-            function.name == constructorName
-        } ?: error("No constructor with name ${constructorName.asString()} is present in stub for rpc service ${serviceClass.name.asString()}. " +
-                "Available stub functions: ${serviceStubClass.functions.joinToString { it.name.asString() }}")
 
         val remoteConfigSymbol = serviceClass.remoteConfigObject()
 
@@ -65,56 +56,99 @@ internal class RpcIrServiceConstructorCallTransformer : IrTransformer<RpcIrConte
             remoteConfigSymbol.owner.findDeclaration<IrProperty> { it.name == data.remoteConfigContext.owner.name }?.getter?.returnType?.classOrFail
                 ?: error("Cannot find `context` property in remote configuration")
         val inLocalContext = containingDeclarations.filterIsInstance<IrFunction>().any {
-            it.parameters.filter { parameter -> parameter.kind in listOf(DispatchReceiver, ExtensionReceiver, Context) }.any {
-                parameter -> parameter.type.isSubtypeOfClass(remoteConfigContextSymbol)
-            }
+            it.parameters.filter { parameter -> parameter.kind in listOf(DispatchReceiver, ExtensionReceiver, Context) }
+                .any { parameter ->
+                    parameter.type.isSubtypeOfClass(remoteConfigContextSymbol)
+                }
         }
         if (inLocalContext) return super.visitConstructorCall(expression, data)
 
-        return vsApi(data) {
-            val serviceStub = IrCallImpl(
-                startOffset = expression.startOffset,
-                endOffset = expression.endOffset,
-                type = expression.type,
-                symbol = data.functions.rpcClientWithService,
-                typeArgumentsCount = 1
-            ).apply {
-                typeArguments[0] = expression.type
-                val defaultRpcClient = IrCallImpl(
-                    startOffset = expression.startOffset,
-                    endOffset = expression.endOffset,
-                    type = data.remoteConfigRpcClient.owner.getter!!.returnType,
-                    symbol = data.remoteConfigRpcClient.owner.getter!!.symbol,
-                    typeArgumentsCount = 0
-                ).apply {
-                    dispatchReceiver = IrGetObjectValueImpl(
-                        expression.startOffset,
-                        expression.endOffset,
-                        remoteConfigSymbol.defaultType,
-                        remoteConfigSymbol
-                    )
-                }
-                arguments[0] = defaultRpcClient
-            }
+        val constructorName = Name.identifier(
+            rpcConstructorName(
+                serviceClass.constructors.indexOfFirst { it.symbol == expression.symbol }.takeIf { it != -1 }
+                    ?: error("No constructor corresponding to constructor call is present in rpc service ${serviceClass.name.asString()}")
+            )
+        )
 
-            IrCallImpl(
-                startOffset = expression.startOffset,
-                endOffset = expression.endOffset,
-                type = expression.type,
-                symbol = rpcConstructorFunction.symbol,
+        val serviceStubClass = serviceClass.nestedClasses.singleOrNull { it.name == RpcNames.SERVICE_STUB_NAME } ?:
+            error("No stub class is present in rpc service ${serviceClass.name.asString()}")
+
+        return remoteConstructorCall(
+            constructorName = constructorName,
+            serviceStubClass = serviceStubClass,
+            serviceStub = serverStubCall(data, serviceClass),
+            ctx = data,
+            constructorArguments = expression.arguments.toList()
+        )
+    }
+}
+
+fun serverStubCall(
+    ctx: RpcIrContext,
+    serviceClass: IrClass,
+): IrCall {
+    val remoteConfigSymbol = serviceClass.remoteConfigObject()
+    return vsApi(ctx) {
+        IrCallImpl(
+            startOffset = UNDEFINED_OFFSET,
+            endOffset = UNDEFINED_OFFSET,
+            type = serviceClass.defaultType,
+            symbol = ctx.functions.rpcClientWithService,
+            typeArgumentsCount = 1
+        ).apply {
+            typeArguments[0] = serviceClass.defaultType
+            val defaultRpcClient = IrCallImpl(
+                startOffset = UNDEFINED_OFFSET,
+                endOffset = UNDEFINED_OFFSET,
+                type = ctx.remoteConfigRpcClient.owner.getter!!.returnType,
+                symbol = ctx.remoteConfigRpcClient.owner.getter!!.symbol,
                 typeArgumentsCount = 0
             ).apply {
-                dispatchReceiver = IrTypeOperatorCallImpl(
-                    expression.startOffset,
-                    expression.endOffset,
-                    type,
-                    IrTypeOperator.CAST,
-                    type,
-                    serviceStub
+                dispatchReceiver = IrGetObjectValueImpl(
+                    UNDEFINED_OFFSET,
+                    UNDEFINED_OFFSET,
+                    remoteConfigSymbol.defaultType,
+                    remoteConfigSymbol
                 )
-                expression.arguments.forEachIndexed { index, irExpression ->
-                    arguments[index + 1] = irExpression
-                }
+            }
+            this@apply.arguments[0] = defaultRpcClient
+        }
+    }
+}
+
+fun remoteConstructorCall(
+    ctx: RpcIrContext,
+    serviceStubClass: IrClass,
+    serviceStub: IrExpression,
+    constructorName: Name,
+    constructorArguments: List<IrExpression?>
+): IrCall {
+
+    val rpcConstructorFunction = serviceStubClass.functions.singleOrNull { function ->
+        function.name == constructorName
+    } ?: error(
+        "No constructor with name ${constructorName.asString()} is present in stub ${serviceStubClass.name.asString()}. " +
+                "Available stub functions: ${serviceStubClass.functions.joinToString { it.name.asString() }}"
+    )
+
+    return vsApi(ctx) {
+        IrCallImpl(
+            startOffset = UNDEFINED_OFFSET,
+            endOffset = UNDEFINED_OFFSET,
+            type = rpcConstructorFunction.returnType,
+            symbol = rpcConstructorFunction.symbol,
+            typeArgumentsCount = 0
+        ).apply {
+            dispatchReceiver = IrTypeOperatorCallImpl(
+                UNDEFINED_OFFSET,
+                UNDEFINED_OFFSET,
+                type,
+                IrTypeOperator.CAST,
+                type,
+                serviceStub
+            )
+            constructorArguments.forEachIndexed { index, irExpression ->
+                this@apply.arguments[index + 1] = irExpression
             }
         }
     }

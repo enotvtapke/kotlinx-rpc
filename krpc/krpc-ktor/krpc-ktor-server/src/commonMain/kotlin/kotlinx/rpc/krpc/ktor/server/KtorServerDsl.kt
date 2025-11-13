@@ -10,6 +10,8 @@ import io.ktor.server.websocket.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.job
 import kotlinx.rpc.krpc.rpcServerConfig
+import kotlinx.rpc.krpc.server.KrpcServer
+import kotlinx.rpc.rpcServer
 
 /**
  * Adds an RPC route to the specified [Route].
@@ -51,12 +53,14 @@ private fun Route.createRpcServer(rpcRouteBuilder: suspend KrpcRoute.() -> Unit)
         val rpcConfig = pluginConfigBuilder?.apply(rpcRoute.configBuilder)?.build()
             ?: rpcServerConfig(rpcRoute.configBuilder)
 
-        val server = KtorKrpcServer(this, rpcConfig)
-
-        rpcRoute.registrations.forEach { registration ->
-            registration(server)
+        if (rpcServer == null) {
+            rpcServer = KtorKrpcServer(this, rpcConfig)
         }
 
-        server.internalScope.coroutineContext.job.join()
+        rpcRoute.registrations.forEach { registration ->
+            registration(rpcServer!!)
+        }
+
+        (rpcServer!! as KrpcServer).internalScope.coroutineContext.job.join()
     }
 }

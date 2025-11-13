@@ -4,6 +4,7 @@
 
 package kotlinx.rpc
 
+import kotlinx.atomicfu.AtomicLong
 import kotlinx.atomicfu.atomic
 import kotlinx.rpc.annotations.Rpc
 import kotlinx.rpc.descriptor.serviceDescriptorOf
@@ -40,7 +41,7 @@ public suspend  fun <@Rpc T : Any> RpcClient.withService(serviceKType: KType): T
  * Counter for locally added services.
  * Used to differentiate uniques local services, regardless of their type.
  */
-private val SERVICE_ID = atomic(0L)
+private val SERVICE_ID: AtomicLong = atomic(0L)
 
 /**
  * Creates an instance of the generated service [T], that is able to communicate with a server using this [RpcClient].
@@ -54,8 +55,9 @@ private val SERVICE_ID = atomic(0L)
 public suspend fun <@Rpc T : Any> RpcClient.withService(serviceKClass: KClass<T>): T {
     val descriptor = serviceDescriptorOf(serviceKClass)
 
-    val id = SERVICE_ID.incrementAndGet()
     val connectionId = getConnectionId()
 
-    return descriptor.createInstance((connectionId shl 31) + id, this)
+    return descriptor.createInstance(serviceId(connectionId), this)
 }
+
+public fun serviceId(connectionId: Long): Long = (connectionId shl 31) + SERVICE_ID.incrementAndGet()

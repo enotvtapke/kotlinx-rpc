@@ -198,6 +198,14 @@ class RpcIrContext(
             }
         }
 
+        val println by lazy {
+            namedFunction("kotlin.io", "println")
+        }
+
+        val registerRemoteService by lazy {
+            namedFunction("kotlinx.rpc", "registerRemoteService")
+        }
+
         val typeOf by lazy {
             namedFunction("kotlin.reflect", "typeOf")
         }

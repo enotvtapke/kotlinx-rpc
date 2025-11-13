@@ -4,7 +4,6 @@
 
 package kotlinx.rpc.krpc.server
 
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import kotlinx.rpc.RpcServer
 import kotlinx.rpc.annotations.Rpc
@@ -18,15 +17,9 @@ import kotlinx.rpc.krpc.internal.*
 import kotlinx.rpc.krpc.internal.logging.RpcInternalCommonLogger
 import kotlinx.rpc.krpc.server.internal.KrpcServerConnector
 import kotlinx.rpc.krpc.server.internal.KrpcServerService
-import kotlin.collections.set
+import kotlinx.rpc.nextConnectionId
 import kotlin.concurrent.Volatile
-import kotlin.error
 import kotlin.reflect.KClass
-
-/**
- * Gives ids to the incoming connections in sequential order. Ids are sent to peers during the handshake process.
- */
-private val SERVER_ATOMIC_CONNECTION_COUNTER = atomic(initial = 0L)
 
 /**
  * kRPC implementation of the [RpcServer].
@@ -113,7 +106,7 @@ public abstract class KrpcServer(
     private suspend fun handleProtocolMessage(message: KrpcProtocolMessage) {
         when (message) {
             is KrpcProtocolMessage.Handshake -> {
-                val connectionId = SERVER_ATOMIC_CONNECTION_COUNTER.incrementAndGet()
+                val connectionId = nextConnectionId()
                 clientSupportedPlugins[connectionId] = message.supportedPlugins
                 supportedPlugins = message.supportedPlugins // TODO supported plugins are not needed when I have clientSupportedPlugins but I preserved it to not fixing tests
                 connector.sendMessage(KrpcProtocolMessage.Handshake(KrpcPlugin.ALL, connectionId = connectionId))
@@ -135,12 +128,13 @@ public abstract class KrpcServer(
     final override fun <@Rpc Service : Any> registerService(
         serviceKClass: KClass<Service>,
         serviceFactory: () -> Service,
+        serviceId: String?,
     ) {
         val descriptor = serviceDescriptorOf(serviceKClass)
 
         internalScope.launch(CoroutineName("krpc-server-service-$descriptor")) {
             connector.subscribeToServiceMessages(descriptor.fqName) { message ->
-                val rpcServerService = rpcServices.computeIfAbsent(descriptor.fqName) {
+                val rpcServerService = rpcServices.computeIfAbsent(serviceId ?: descriptor.fqName) {
                     createNewServiceInstance(
                         descriptor,
                         plugins(message.connectionId!!),
